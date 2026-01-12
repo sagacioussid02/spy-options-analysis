@@ -1,0 +1,42 @@
+{
+  "current_price": 478.11,
+  "daily_data": {
+    "open": 480.58,
+    "high": 482.66,
+    "low": 475.86,
+    "close": 478.11,
+    "volume": 18073036,
+    "day_range": 6.8
+  },
+  "technical_levels": {
+    "support": 475.86,
+    "resistance": 482.66,
+    "vwap": 492.5
+  },
+  "entry_prices": {
+    "conservative": 477.22,
+    "at_current": 478.11,
+    "risky": 481.3
+  },
+  "position_sizing": {
+    "volatility": 15.45,
+    "position_size_pct": "MEDIUM (15-20%)",
+    "rationale": "Moderate volatility - balanced approach"
+  },
+  "options_context": {
+    "strike": 478.11,
+    "premium": 5.5,
+    "bid_ask_spread": {
+      "bid": 5.54,
+      "ask": 5.63
+    },
+    "theta_risk": "MODERATE"
+  },
+  "buy_decision": {
+    "decision": "WAIT",
+    "score": 25,
+    "reasons": [
+      "RSI in sweet spot (50-70) - not overbought"
+    ]
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "trades": [
+    {
+      "trade_id": "2026-01-06-001",
+      "date": "2026-01-06",
+      "instrument": "SPY Call",
+      "strike": 691,
+      "expiry_dte": 2,
+      "entry": {
+        "price": 2.18,
+        "time": "22:44",
+        "premium_paid": 2.18,
+        "contracts": 10,
+        "total_cost": 2180.0,
+        "engine_confidence": 79.9,
+        "engine_recommendation": "High confidence bullish setup",
+        "predicted_direction": "UP",
+        "reason": "High confidence bullish setup"
+      },
+      "exit": {
+        "price": 2.5,
+        "time": "22:44",
+        "premium_sold": 2.5,
+        "proceeds": 2500.0,
+        "profit": 319.99999999999983,
+        "profit_pct": 14.6788990825688,
+        "reason": "Manual exit"
+      },
+      "analysis": {
+        "predicted_direction": "UP",
+        "actual_direction": "UP",
+        "prediction_correct": true,
+        "spy_move": 0.32,
+        "move_pct": 14.68,
+        "profit_realized": 319.99999999999983,
+        "lesson": "\u2713 Low confidence trade worked anyway. Lucky? Or missed a signal?"
+      }
+    },
+    {
+      "trade_id": "2026-01-06-002",
+      "date": "2026-01-06",
+      "instrument": "SPY Call",
+      "strike": 691,
+      "expiry_dte": 2,
+      "entry": {
+        "price": 2.18,
+        "time": "22:45",
+        "premium_paid": 2.18,
+        "contracts": 5,
+        "total_cost": 1090.0,
+        "engine_confidence": 79.9,
+        "engine_recommendation": "Trade recommendation",
+        "predicted_direction": "UP",
+        "reason": "Short-term directional bias"
+      },
+      "exit": {
+        "price": 3.08,
+        "time": "14:30",
+        "premium_sold": 3.08,
+        "proceeds": 1540.0,
+        "profit": 450.0,
+        "profit_pct": 41.28,
+        "reason": "Manual exit - sold today"
+      },
+      "analysis": null
+    },
+    {
+      "trade_id": "2026-01-06-003",
+      "date": "2026-01-06",
+      "instrument": "SPY Call",
+      "strike": 691,
+      "expiry_dte": 2,
+      "entry": {
+        "price": 2.18,
+        "time": "22:49",
+        "premium_paid": 2.18,
+        "contracts": 5,
+        "total_cost": 1090.0,
+        "engine_confidence": 79.9,
+        "engine_recommendation": "Trade recommendation",
+        "predicted_direction": "UP",
+        "reason": "Short-term directional bias"
+      },
+      "exit": {
+        "price": 3.08,
+        "time": "14:30",
+        "premium_sold": 3.08,
+        "proceeds": 1540.0,
+        "profit": 450.0,
+        "profit_pct": 41.28,
+        "reason": "Manual exit - sold today"
+      },
+      "analysis": null
+    },
+    {
+      "trade_id": "2026-01-07-004",
+      "date": "2026-01-07",
+      "instrument": "SPY Call",
+      "strike": 688,
+      "expiry_dte": 2,
+      "entry": {
+        "price": 689.56,
+        "time": "14:01",
+        "premium_paid": 3.75,
+        "contracts": 1,
+        "total_cost": 375.0,
+        "engine_confidence": 79.8,
+        "engine_recommendation": "Trade recommendation",
+        "predicted_direction": "UP",
+        "reason": "Short-term directional bias"
+      },
+      "exit": {
+        "price": 3.55,
+        "time": "14:30",
+        "premium_sold": 3.55,
+        "proceeds": 355.0,
+        "profit": -20.0,
+        "profit_pct": -5.33,
+        "reason": "Manual exit - sold today"
+      },
+      "analysis": null
+    }
+  ],
+  "summary": {
+    "total_trades": 0,
+    "winning_trades": 0,
+    "losing_trades": 0,
+    "win_rate": 0.0,
+    "total_profit": 0,
+    "total_loss": 0,
+    "avg_profit_per_trade": 0.0,
+    "largest_win": 0,
+    "largest_loss": 0,
+    "profit_factor": 0.0
+  }
+}

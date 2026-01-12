@@ -1,0 +1,50 @@
+{
+  "overall": {
+    "positive_count": 3,
+    "negative_count": 1,
+    "headline_score": 0.75,
+    "blended_positive": 1,
+    "blended_negative": 0,
+    "blended_score": 1.0
+  },
+  "by_stock": {
+    "Apple": {
+      "headline_score": 1.0,
+      "headline_sentiment": "positive",
+      "mentions": 1,
+      "recent_headlines": [
+        "Apple\u2019s John Ternus leads race to succeed Tim Cook as CEO, NYT reports"
+      ],
+      "direct_finbert": {
+        "stock": "AAPL",
+        "sentiment": "positive",
+        "score": 0.551,
+        "confidence": 0.795,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.795
+        }
+      },
+      "blended": {
+        "blended_score": 0.641,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.2,
+          "direct_finbert": 0.8
+        },
+        "headline_contribution": 0.201,
+        "finbert_contribution": 0.44
+      }
+    }
+  },
+  "top_headlines": [
+    "Apple\u2019s John Ternus leads race to succeed Tim Cook as CEO, NYT reports"
+  ]
+}

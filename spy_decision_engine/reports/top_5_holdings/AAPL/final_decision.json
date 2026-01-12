@@ -1,0 +1,99 @@
+{
+  "timestamp": "14:39",
+  "final_score": 50.0,
+  "decision": "HOLD / PASS",
+  "confidence": "MEDIUM",
+  "component_scores": {
+    "momentum": 0.0,
+    "alignment": 0.5,
+    "event_driven": 0.5,
+    "sentiment_overall": 1.0,
+    "volatility_penalty": 0.0
+  },
+  "market_conditions": {
+    "spy_price": 259.04,
+    "trend": "BEARISH",
+    "rsi": 22.0,
+    "ema_9": 266.15,
+    "ema_21": 270.07,
+    "vwap": 272.51,
+    "vix": 15.4
+  },
+  "stock_sentiment_analysis": {
+    "Apple": {
+      "score": 0.5,
+      "mentions": 1,
+      "positive": 0,
+      "negative": 0
+    }
+  },
+  "entry_strategy": {
+    "conservative_entry": 256.42,
+    "current_entry": 259.04,
+    "risky_entry": 258.56,
+    "recommended_entry": 256.42
+  },
+  "position_management": {
+    "size_recommendation": "MEDIUM (15-20%)",
+    "volatility_adjusted": "Moderate volatility - balanced approach",
+    "risk_per_trade": 38778.44
+  },
+  "options_greeks": {
+    "delta": 0.65,
+    "gamma": 0.008,
+    "theta": -0.05,
+    "vega": 0.15,
+    "note": "These are estimates; actual Greeks depend on exact strike and DTE"
+  },
+  "event_analysis": {
+    "status": "0 events detected",
+    "net_bias": "NEUTRAL",
+    "confidence": "LOW",
+    "score": 0.5,
+    "impact_summary": "Mixed signals"
+  },
+  "risk_reward": {
+    "entry_price": 259.04,
+    "take_profit_target": 259.28,
+    "stop_loss_level": 248.03,
+    "risk_reward_ratio": "1:0.34"
+  },
+  "time_decay": {
+    "days_to_expiry": 7,
+    "theta_daily": 0.44,
+    "theta_warning": "Moderate"
+  },
+  "bullish_factors": [
+    "Top holdings positive (4/8 green)"
+  ],
+  "bearish_factors": [
+    "Bearish/neutral trend",
+    "RSI oversold: 22.0 (bounce risk)"
+  ],
+  "confidence_score": {
+    "value": 0,
+    "drivers": [
+      "\u2717 Momentum gate failed (lower confidence)"
+    ]
+  },
+  "upcoming_catalysts": {
+    "note": "Check PREDICTION_MARKETS.md for event catalysts",
+    "next_steps": "1. Monitor NVIDIA earnings (Jan 29), 2. Track Fed decisions, 3. Watch AI sector news"
+  },
+  "recommendation": {
+    "action": "HOLD / PASS",
+    "buy_decision": {
+      "decision": "WAIT",
+      "score": 0,
+      "reasons": []
+    },
+    "explanation": [
+      "SPY momentum is bearish (conditions not met)",
+      "Top holdings showing divergence",
+      "News sentiment is neutral",
+      "Volatility environment is favorable for options"
+    ],
+    "next_review": "Monitor momentum and sentiment daily; reassess if RSI crosses 70 or 30"
+  },
+  "options_what_if": {}
+}

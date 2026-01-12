@@ -1,0 +1,40 @@
+{
+  "current_price": 259.04,
+  "daily_data": {
+    "open": 257.02,
+    "high": 259.28,
+    "low": 255.7,
+    "close": 259.04,
+    "volume": 47422499,
+    "day_range": 3.58
+  },
+  "technical_levels": {
+    "support": 255.7,
+    "resistance": 259.28,
+    "vwap": 272.51
+  },
+  "entry_prices": {
+    "conservative": 256.42,
+    "at_current": 259.04,
+    "risky": 258.56
+  },
+  "position_sizing": {
+    "volatility": 15.45,
+    "position_size_pct": "MEDIUM (15-20%)",
+    "rationale": "Moderate volatility - balanced approach"
+  },
+  "options_context": {
+    "strike": 259.04,
+    "premium": 5.5,
+    "bid_ask_spread": {
+      "bid": 5.54,
+      "ask": 5.63
+    },
+    "theta_risk": "MODERATE"
+  },
+  "buy_decision": {
+    "decision": "WAIT",
+    "score": 0,
+    "reasons": []
+  }
+}

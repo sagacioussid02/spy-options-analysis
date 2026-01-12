@@ -1,0 +1,101 @@
+{
+  "timestamp": "14:39",
+  "final_score": 59.0,
+  "decision": "HOLD / PASS",
+  "confidence": "MEDIUM",
+  "component_scores": {
+    "momentum": 0.3,
+    "alignment": 0.5,
+    "event_driven": 0.5,
+    "sentiment_overall": 1.0,
+    "volatility_penalty": 0.0
+  },
+  "market_conditions": {
+    "spy_price": 478.11,
+    "trend": "BEARISH",
+    "rsi": 52.2,
+    "ema_9": 480.43,
+    "ema_21": 483.09,
+    "vwap": 492.5,
+    "vix": 15.4
+  },
+  "stock_sentiment_analysis": {
+    "Microsoft": {
+      "score": 0.5,
+      "mentions": 1,
+      "positive": 0,
+      "negative": 0
+    }
+  },
+  "entry_strategy": {
+    "conservative_entry": 477.22,
+    "current_entry": 478.11,
+    "risky_entry": 481.3,
+    "recommended_entry": 477.22
+  },
+  "position_management": {
+    "size_recommendation": "MEDIUM (15-20%)",
+    "volatility_adjusted": "Moderate volatility - balanced approach",
+    "risk_per_trade": 106246.67
+  },
+  "options_greeks": {
+    "delta": 0.65,
+    "gamma": 0.008,
+    "theta": -0.05,
+    "vega": 0.15,
+    "note": "These are estimates; actual Greeks depend on exact strike and DTE"
+  },
+  "event_analysis": {
+    "status": "0 events detected",
+    "net_bias": "NEUTRAL",
+    "confidence": "LOW",
+    "score": 0.5,
+    "impact_summary": "Mixed signals"
+  },
+  "risk_reward": {
+    "entry_price": 478.11,
+    "take_profit_target": 482.66,
+    "stop_loss_level": 461.58,
+    "risk_reward_ratio": "1:0.35"
+  },
+  "time_decay": {
+    "days_to_expiry": 7,
+    "theta_daily": 0.44,
+    "theta_warning": "Moderate"
+  },
+  "bullish_factors": [
+    "RSI in sweet spot: 52.2 (not overbought)",
+    "Top holdings positive (4/8 green)"
+  ],
+  "bearish_factors": [
+    "Bearish/neutral trend"
+  ],
+  "confidence_score": {
+    "value": 15,
+    "drivers": [
+      "\u2717 Momentum gate failed (lower confidence)"
+    ]
+  },
+  "upcoming_catalysts": {
+    "note": "Check PREDICTION_MARKETS.md for event catalysts",
+    "next_steps": "1. Monitor NVIDIA earnings (Jan 29), 2. Track Fed decisions, 3. Watch AI sector news"
+  },
+  "recommendation": {
+    "action": "HOLD / PASS",
+    "buy_decision": {
+      "decision": "WAIT",
+      "score": 25,
+      "reasons": [
+        "RSI in sweet spot (50-70) - not overbought"
+      ]
+    },
+    "explanation": [
+      "SPY momentum is bearish (conditions not met)",
+      "Top holdings showing divergence",
+      "News sentiment is neutral",
+      "Volatility environment is favorable for options"
+    ],
+    "next_review": "Monitor momentum and sentiment daily; reassess if RSI crosses 70 or 30"
+  },
+  "options_what_if": {}
+}

@@ -1,0 +1,42 @@
+{
+  "current_price": 325.44,
+  "daily_data": {
+    "open": 328.96,
+    "high": 330.32,
+    "low": 321.5,
+    "close": 325.44,
+    "volume": 31106653,
+    "day_range": 8.82
+  },
+  "technical_levels": {
+    "support": 321.5,
+    "resistance": 330.32,
+    "vwap": 302.15
+  },
+  "entry_prices": {
+    "conservative": 323.26,
+    "at_current": 325.44,
+    "risky": 328.56
+  },
+  "position_sizing": {
+    "volatility": 15.45,
+    "position_size_pct": "MEDIUM (15-20%)",
+    "rationale": "Moderate volatility - balanced approach"
+  },
+  "options_context": {
+    "strike": 325.44,
+    "premium": 5.5,
+    "bid_ask_spread": {
+      "bid": 5.54,
+      "ask": 5.63
+    },
+    "theta_risk": "MODERATE"
+  },
+  "buy_decision": {
+    "decision": "WAIT",
+    "score": 25,
+    "reasons": [
+      "Price above VWAP - bullish"
+    ]
+  }
+}

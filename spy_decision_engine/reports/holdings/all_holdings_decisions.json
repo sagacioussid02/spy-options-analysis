@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-01-08T11:24:24.312054",
+  "analysis_type": "Individual Stock Analysis - Top 10 Holdings",
+  "total_holdings_analyzed": 0,
+  "decisions": [],
+  "summary_stats": {
+    "buy_signals": 0,
+    "sell_signals": 0,
+    "hold_signals": 0,
+    "average_score": 0,
+    "highest_score": {
+      "ticker": null,
+      "score": 0
+    },
+    "lowest_score": {
+      "ticker": null,
+      "score": 100
+    }
+  }
+}

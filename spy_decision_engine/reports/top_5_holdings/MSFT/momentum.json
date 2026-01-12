@@ -1,0 +1,14 @@
+{
+  "trend": "BEARISH",
+  "ema_cross": false,
+  "rsi": 52.2,
+  "above_vwap": false,
+  "score": 0.3,
+  "trade_allowed": false,
+  "indicators": {
+    "ema_9": 480.43,
+    "ema_21": 483.09,
+    "vwap": 492.5,
+    "current_price": 478.11
+  }
+}

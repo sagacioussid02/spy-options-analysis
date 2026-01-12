@@ -1,0 +1,5 @@
+.env
+__pycache__/
+- .DS_Store
+- *.pyc
+- spy_decision_engine/data/trades.json (optional - contains trade history)

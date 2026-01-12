@@ -1,0 +1,106 @@
+======================================================================
+SPY OPTIONS TRADING DECISION - January 08, 2026 - 02:45 PM
+======================================================================
+
+📊 DECISION: BUY SMALL
+   Score: 80.0/100
+   Confidence: HIGH
+
+What it means:
+  ✅ WEAK BUY - Buy small position if comfortable
+
+🎯 SPECIFIC OPTIONS TO BUY (FASTEST CHOICE)
+----------------------------------------------------------------------
+  🎯 BUY THIS OPTION (Recommended):
+     Strike: $688 Call
+     Expires: 2026-01-09 (0 days from now)
+     Current Price: $3.47
+     Bid/Ask: $3.46 / $3.47
+
+  HOW TO BUY IN YOUR BROKER:
+    1. Open Tastytrade, Robinhood, or your broker app
+    2. Search for: SPY $688 Call 2026-01-09
+    3. Click BUY CALL
+    4. Enter quantity (e.g., 1 contract)
+    5. Set limit order at $3.46 (to get the best price)
+    6. Click SEND ORDER
+
+  📈 EXPECTED PROFIT if SPY goes UP:
+     1 day(s) from now: Premium could be $4.3 (was $3.47)
+     2 day(s) from now: Premium could be $6.1 (was $3.47)
+     3 day(s) from now: Premium could be $12.9 (was $3.47)
+
+💰 SPY STOCK PRICE REFERENCE (For Context)
+----------------------------------------------------------------------
+  Conservative Entry: $688.11
+  Current Entry: $689.51
+  Aggressive Entry: $689.99
+
+🔍 WHY THIS DECISION?
+----------------------------------------------------------------------
+  Momentum: 1.0/100 - Strong
+  Sentiment: 1.0 - Positive
+  Market Alignment: 0.5/100 - Diverging
+  Volatility Impact: -0.0 penalty
+  Events: 0.5/100
+
+📈 CURRENT MARKET CONDITIONS
+----------------------------------------------------------------------
+  SPY Price: $689.51
+  Trend: BULLISH
+  RSI: 74.1 (below 30=oversold, above 70=overbought)
+  VIX: 15.4 (higher=more fear)
+
+✅ BULLISH FACTORS (Reasons to Buy)
+----------------------------------------------------------------------
+  • Bullish trend (EMA-9: 687.56)
+  • EMA-9 above EMA-21 (bullish cross)
+  • Price above VWAP (bullish)
+  • Top holdings positive (4/8 green)
+
+❌ BEARISH FACTORS (Reasons to Be Cautious)
+----------------------------------------------------------------------
+  • RSI overbought: 74.1 (pullback risk)
+
+⚡ OPTIONS CONSIDERATIONS
+----------------------------------------------------------------------
+  Time Decay (Theta): N/A/day
+  Delta (Price Sensitivity): N/A
+  Implied Volatility: N/A
+
+📋 ACTION ITEMS FOR TODAY
+----------------------------------------------------------------------
+  1. Look for entry signal around the 'Current Entry Price'
+  2. Set limit buy order at entry price
+  3. Set stop loss at the 'Stop Loss' level
+  4. Take profits at 'Take Profit Target'
+
+📅 UPCOMING CATALYSTS TO WATCH
+----------------------------------------------------------------------
+  • NVIDIA earnings: Jan 29, 2026
+  • Fed decision: Jan 28, 2026
+  • Other tech earnings throughout January
+  • Monitor news_sentiment.json for live updates
+
+💡 CONFIDENCE BREAKDOWN
+----------------------------------------------------------------------
+  • ✓ Momentum gate passed
+
+📖 HOW TO USE THIS REPORT
+----------------------------------------------------------------------
+  1. Read the DECISION at the top
+  2. Check WHY (look at the reasons)
+  3. Use the Entry & Exit prices for your trade
+  4. Follow the ACTION ITEMS for today
+  5. If you take a trade, record it with: trade_cmd.py add ...
+
+📁 DETAILED FILES FOR MORE INFO
+----------------------------------------------------------------------
+  • final_decision.json - Full technical analysis (JSON format)
+  • sentiment.json - News sentiment breakdown by stock
+  • event_driven.json - Market-moving events detected
+  • momentum.json - SPY momentum analysis
+
+======================================================================
+Generated: 14:44
+======================================================================

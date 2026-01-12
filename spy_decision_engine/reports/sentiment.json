@@ -1,0 +1,225 @@
+{
+  "overall": {
+    "positive_count": 14,
+    "negative_count": 7,
+    "headline_score": 0.67,
+    "blended_positive": 4,
+    "blended_negative": 0,
+    "blended_score": 1.0
+  },
+  "top_headlines": [
+    "The December CPI May Bring A Hot Surprise For Markets",
+    "5 Considerations In The Upcoming CPI Report",
+    "DLN: Diversified Large Value ETF With Risk Screening",
+    "Apple Has What It Takes To Keep Growing Through 2030",
+    "Google bolsters bet on AI-powered commerce with new platform for shopping agents ",
+    "How the AI data center bubble story is playing out inside one booming energy stock",
+    "Oklo's Meta Power Agreement; The Narrative Just Flipped Bullish (Rating Upgrade)",
+    "The Trade Desk: Why I'm Not Buying Despite A Large Upside Potential",
+    "Walmart teams up with Google's Gemini to make it easier for shoppers to find and buy products",
+    "Tesla: The Elon Premium Is Off The Charts",
+    "Behind Anthropic's stunning growth is a sibling team that may hold the key to generative AI",
+    "What We Can Learn From Warren Buffett's Mistakes Going Forward",
+    "5 Things That Won't Happen In 2026 (The Alpha Of Inertia)",
+    "January Dogs Of The Dow: One Ideal 'Safer' Dividend Buy",
+    "Economic Digest: Nepal\u2019s Business News in a Snap"
+  ],
+  "by_stock": {
+    "Apple": {
+      "headline_score": 0.0,
+      "headline_sentiment": "negative",
+      "mentions": 1,
+      "recent_headlines": [
+        "Apple Has What It Takes To Keep Growing Through 2030"
+      ],
+      "direct_finbert": {
+        "stock": "AAPL",
+        "sentiment": "positive",
+        "score": 0.551,
+        "confidence": 0.795,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.795
+        }
+      },
+      "blended": {
+        "blended_score": 0.44,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.2,
+          "direct_finbert": 0.8
+        },
+        "headline_contribution": 0.0,
+        "finbert_contribution": 0.44
+      }
+    },
+    "Meta": {
+      "headline_score": 0.0,
+      "headline_sentiment": "negative",
+      "mentions": 1,
+      "recent_headlines": [
+        "Oklo's Meta Power Agreement; The Narrative Just Flipped Bullish (Rating Upgrade)"
+      ],
+      "direct_finbert": {
+        "stock": "META",
+        "sentiment": "positive",
+        "score": 0.494,
+        "confidence": 0.831,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.831
+        }
+      },
+      "blended": {
+        "blended_score": 0.398,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.19,
+          "direct_finbert": 0.81
+        },
+        "headline_contribution": 0.0,
+        "finbert_contribution": 0.398
+      }
+    },
+    "Google": {
+      "headline_score": 0.0,
+      "headline_sentiment": "negative",
+      "mentions": 2,
+      "recent_headlines": [
+        "Google bolsters bet on AI-powered commerce with new platform for shopping agents ",
+        "Walmart teams up with Google's Gemini to make it easier for shoppers to find and buy products"
+      ],
+      "direct_finbert": {
+        "stock": "GOOGL",
+        "sentiment": "positive",
+        "score": 0.559,
+        "confidence": 0.785,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.785
+        }
+      },
+      "blended": {
+        "blended_score": 0.37,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.34,
+          "direct_finbert": 0.66
+        },
+        "headline_contribution": 0.0,
+        "finbert_contribution": 0.37
+      }
+    },
+    "Tesla": {
+      "headline_score": 0.5,
+      "headline_sentiment": "neutral",
+      "mentions": 1,
+      "recent_headlines": [
+        "Tesla: The Elon Premium Is Off The Charts"
+      ],
+      "direct_finbert": {
+        "stock": "TSLA",
+        "sentiment": "positive",
+        "score": 0.471,
+        "confidence": 0.831,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.831
+        }
+      },
+      "blended": {
+        "blended_score": 0.477,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.19,
+          "direct_finbert": 0.81
+        },
+        "headline_contribution": 0.097,
+        "finbert_contribution": 0.38
+      }
+    }
+  },
+  "direct_finbert_all_stocks": {
+    "GOOGL": {
+      "stock": "GOOGL",
+      "sentiment": "positive",
+      "score": 0.559,
+      "confidence": 0.785,
+      "source": "direct_finbert_query",
+      "breakdown": {
+        "positive_prompts": 2,
+        "negative_prompts": 1,
+        "neutral_prompts": 0,
+        "avg_confidence": 0.785
+      }
+    },
+    "AAPL": {
+      "stock": "AAPL",
+      "sentiment": "positive",
+      "score": 0.551,
+      "confidence": 0.795,
+      "source": "direct_finbert_query",
+      "breakdown": {
+        "positive_prompts": 2,
+        "negative_prompts": 1,
+        "neutral_prompts": 0,
+        "avg_confidence": 0.795
+      }
+    },
+    "META": {
+      "stock": "META",
+      "sentiment": "positive",
+      "score": 0.494,
+      "confidence": 0.831,
+      "source": "direct_finbert_query",
+      "breakdown": {
+        "positive_prompts": 2,
+        "negative_prompts": 1,
+        "neutral_prompts": 0,
+        "avg_confidence": 0.831
+      }
+    },
+    "TSLA": {
+      "stock": "TSLA",
+      "sentiment": "positive",
+      "score": 0.471,
+      "confidence": 0.831,
+      "source": "direct_finbert_query",
+      "breakdown": {
+        "positive_prompts": 2,
+        "negative_prompts": 1,
+        "neutral_prompts": 0,
+        "avg_confidence": 0.831
+      }
+    }
+  },
+  "analysis_method": "FinBert AI (Headlines + Direct Query + Blended)"
+}

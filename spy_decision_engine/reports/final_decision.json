@@ -1,0 +1,124 @@
+{
+  "timestamp": "20:25",
+  "final_score": 86.0,
+  "decision": "BUY SMALL",
+  "confidence": "HIGH",
+  "component_scores": {
+    "momentum": 1.0,
+    "alignment": 0.88,
+    "event_driven": 0.5,
+    "sentiment_overall": 1.0,
+    "volatility_penalty": 0.0,
+    "holdings_analysis": 0.64
+  },
+  "market_conditions": {
+    "spy_price": 694.07,
+    "trend": "BULLISH",
+    "rsi": 73.8,
+    "ema_9": 688.86,
+    "ema_21": 685.47,
+    "vwap": 676.63,
+    "vix": 14.5
+  },
+  "stock_sentiment_analysis": {
+    "Apple": {
+      "score": 0.5,
+      "mentions": 1,
+      "positive": 0,
+      "negative": 0
+    },
+    "Meta": {
+      "score": 0.5,
+      "mentions": 1,
+      "positive": 0,
+      "negative": 0
+    },
+    "Google": {
+      "score": 0.5,
+      "mentions": 2,
+      "positive": 0,
+      "negative": 0
+    },
+    "Tesla": {
+      "score": 0.5,
+      "mentions": 1,
+      "positive": 0,
+      "negative": 0
+    }
+  },
+  "entry_strategy": {
+    "conservative_entry": 690.41,
+    "current_entry": 694.07,
+    "risky_entry": 694.08,
+    "recommended_entry": 689.18
+  },
+  "position_management": {
+    "size_recommendation": "MEDIUM-LARGE (20-25%)",
+    "volatility_adjusted": "Low volatility - comfortable with larger position",
+    "risk_per_trade": 70968.3
+  },
+  "options_greeks": {
+    "delta": 0.65,
+    "gamma": 0.008,
+    "theta": -0.05,
+    "vega": 0.15,
+    "note": "These are estimates; actual Greeks depend on exact strike and DTE"
+  },
+  "event_analysis": {
+    "status": "0 events detected",
+    "net_bias": "NEUTRAL",
+    "confidence": "LOW",
+    "score": 0.5,
+    "impact_summary": "Mixed signals"
+  },
+  "risk_reward": {
+    "entry_price": 694.07,
+    "take_profit_target": 695.31,
+    "stop_loss_level": 668.5,
+    "risk_reward_ratio": "1:0.3"
+  },
+  "time_decay": {
+    "days_to_expiry": 7,
+    "theta_daily": 0.44,
+    "theta_warning": "Moderate"
+  },
+  "bullish_factors": [
+    "Bullish trend (EMA-9: 688.86)",
+    "EMA-9 above EMA-21 (bullish cross)",
+    "Price above VWAP (bullish)",
+    "Top holdings positive (7/8 green)"
+  ],
+  "bearish_factors": [
+    "RSI overbought: 73.8 (pullback risk)"
+  ],
+  "confidence_score": {
+    "value": 65,
+    "drivers": [
+      "\u2713 Momentum gate passed",
+      "\u2713 Strong alignment: 0.88"
+    ]
+  },
+  "upcoming_catalysts": {
+    "note": "Check PREDICTION_MARKETS.md for event catalysts",
+    "next_steps": "1. Monitor NVIDIA earnings (Jan 29), 2. Track Fed decisions, 3. Watch AI sector news"
+  },
+  "recommendation": {
+    "action": "BUY SMALL",
+    "buy_decision": {
+      "decision": "WAIT",
+      "score": 50,
+      "reasons": [
+        "Price above VWAP - bullish",
+        "Trend is bullish"
+      ]
+    },
+    "explanation": [
+      "SPY momentum is bullish (EMA + VWAP aligned)",
+      "Top holdings are well-aligned and positive",
+      "News sentiment is strongly positive",
+      "Volatility environment is favorable for options"
+    ],
+    "next_review": "Monitor momentum and sentiment daily; reassess if RSI crosses 70 or 30"
+  },
+  "options_what_if": {}
+}

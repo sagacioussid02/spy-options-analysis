@@ -1,0 +1,53 @@
+{
+  "overall": {
+    "positive_count": 1,
+    "negative_count": 2,
+    "headline_score": 0.33,
+    "blended_positive": 1,
+    "blended_negative": 0,
+    "blended_score": 1.0
+  },
+  "by_stock": {
+    "Google": {
+      "headline_score": 0.33,
+      "headline_sentiment": "negative",
+      "mentions": 3,
+      "recent_headlines": [
+        "Snowflake (SNOW) Is Up 6.4% After Deepening Google Gemini 3 Integration Into Cortex AI Environment",
+        "Alphabet Shares Keep Climbing, Defying Broader Tech Weakness",
+        "GOOGL Best Performing Magnificent 7 Stock in a Year: Buy or Hold Now?"
+      ],
+      "direct_finbert": {
+        "stock": "GOOGL",
+        "sentiment": "positive",
+        "score": 0.559,
+        "confidence": 0.785,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.785
+        }
+      },
+      "blended": {
+        "blended_score": 0.461,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.43,
+          "direct_finbert": 0.57
+        },
+        "headline_contribution": 0.144,
+        "finbert_contribution": 0.317
+      }
+    }
+  },
+  "top_headlines": [
+    "Snowflake (SNOW) Is Up 6.4% After Deepening Google Gemini 3 Integration Into Cortex AI Environment",
+    "GOOGL Best Performing Magnificent 7 Stock in a Year: Buy or Hold Now?"
+  ]
+}

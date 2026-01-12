@@ -1,0 +1,50 @@
+{
+  "overall": {
+    "positive_count": 3,
+    "negative_count": 0,
+    "headline_score": 1.0,
+    "blended_positive": 1,
+    "blended_negative": 0,
+    "blended_score": 1.0
+  },
+  "by_stock": {
+    "Amazon": {
+      "headline_score": 1.0,
+      "headline_sentiment": "positive",
+      "mentions": 1,
+      "recent_headlines": [
+        "2 E-Commerce Stocks With More Growth Than Amazon"
+      ],
+      "direct_finbert": {
+        "stock": "AMZN",
+        "sentiment": "positive",
+        "score": 0.503,
+        "confidence": 0.82,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.82
+        }
+      },
+      "blended": {
+        "blended_score": 0.6,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.2,
+          "direct_finbert": 0.8
+        },
+        "headline_contribution": 0.196,
+        "finbert_contribution": 0.404
+      }
+    }
+  },
+  "top_headlines": [
+    "2 E-Commerce Stocks With More Growth Than Amazon"
+  ]
+}

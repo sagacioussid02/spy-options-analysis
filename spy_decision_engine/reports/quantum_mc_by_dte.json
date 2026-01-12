@@ -1,0 +1,49 @@
+{
+  "stock_price": 689.56,
+  "strike": 688,
+  "volatility": 0.18,
+  "results_by_dte": {
+    "1": {
+      "black_scholes": 3.4939,
+      "classical_mc": 3.3892,
+      "quantum_mc": 91.0107,
+      "theta_daily": 4.7981
+    },
+    "2": {
+      "black_scholes": 4.5904,
+      "classical_mc": 4.5502,
+      "quantum_mc": 87.5525,
+      "theta_daily": 5.538
+    },
+    "3": {
+      "black_scholes": 5.4488,
+      "classical_mc": 5.4569,
+      "quantum_mc": 87.5417,
+      "theta_daily": 6.2339
+    },
+    "5": {
+      "black_scholes": 6.8331,
+      "classical_mc": 6.7711,
+      "quantum_mc": 86.831,
+      "theta_daily": 7.453
+    },
+    "7": {
+      "black_scholes": 7.9771,
+      "classical_mc": 7.9541,
+      "quantum_mc": 79.92,
+      "theta_daily": 8.5085
+    },
+    "14": {
+      "black_scholes": 11.1131,
+      "classical_mc": 11.508,
+      "quantum_mc": 83.9812,
+      "theta_daily": 11.502099999999999
+    },
+    "30": {
+      "black_scholes": 16.2967,
+      "classical_mc": 15.9336,
+      "quantum_mc": 93.4339,
+      "theta_daily": 16.5762
+    }
+  }
+}

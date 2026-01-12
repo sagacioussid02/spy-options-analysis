@@ -1,0 +1,17 @@
+{
+  "strike": 688,
+  "expiry": "2026-01-09",
+  "type": "CALL",
+  "current_premium": 6.22,
+  "profit_if_bought": {
+    "D-1": 7.0,
+    "D-2": 8.8,
+    "D-3": 15.6
+  },
+  "premium_trend": "RISING",
+  "theta_risk": "MODERATE",
+  "bid_ask": {
+    "bid": 6.18,
+    "ask": 6.32
+  }
+}

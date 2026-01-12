@@ -1,0 +1,50 @@
+{
+  "overall": {
+    "positive_count": 3,
+    "negative_count": 2,
+    "headline_score": 0.6,
+    "blended_positive": 1,
+    "blended_negative": 0,
+    "blended_score": 1.0
+  },
+  "by_stock": {
+    "Microsoft": {
+      "headline_score": 0.0,
+      "headline_sentiment": "negative",
+      "mentions": 1,
+      "recent_headlines": [
+        "Why IREN (IREN) Is Up 15.5% After New Microsoft AI Deal And Employee Share Plan"
+      ],
+      "direct_finbert": {
+        "stock": "MSFT",
+        "sentiment": "positive",
+        "score": 0.567,
+        "confidence": 0.785,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.785
+        }
+      },
+      "blended": {
+        "blended_score": 0.452,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.2,
+          "direct_finbert": 0.8
+        },
+        "headline_contribution": 0.0,
+        "finbert_contribution": 0.452
+      }
+    }
+  },
+  "top_headlines": [
+    "Why IREN (IREN) Is Up 15.5% After New Microsoft AI Deal And Employee Share Plan"
+  ]
+}

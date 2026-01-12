@@ -1,0 +1,43 @@
+{
+  "trade_info": {
+    "symbol": "SPY",
+    "strike": 688,
+    "type": "call",
+    "entry_price": 689.56,
+    "dte": 2
+  },
+  "market_parameters": {
+    "stock_price": 689.56,
+    "strike": 688,
+    "volatility": 0.18,
+    "risk_free_rate": 0.045,
+    "time_to_expiry_years": 0.005479452054794521,
+    "time_to_expiry_days": 2
+  },
+  "pricing_methods": {
+    "black_scholes": {
+      "method": "Black-Scholes",
+      "price": 4.5904,
+      "delta": 0.5774,
+      "gamma": 0.0426,
+      "vega": 0.1998,
+      "theta": -0.9476
+    },
+    "classical_mc": {
+      "method": "Classical Monte Carlo",
+      "price": 4.5371,
+      "std_error": 0.0594,
+      "ci_lower": 4.4208,
+      "ci_upper": 4.6535,
+      "num_simulations": 10000
+    },
+    "quantum_mc": {
+      "method": "Quantum Monte Carlo (Amplitude Amplification)",
+      "price": 80.6586,
+      "itm_probability": 0.117,
+      "num_qubits": 3,
+      "num_shots": 1000,
+      "circuit_depth": 10
+    }
+  }
+}

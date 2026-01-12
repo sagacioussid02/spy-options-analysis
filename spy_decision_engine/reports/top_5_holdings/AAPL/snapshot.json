@@ -1,0 +1,48 @@
+{
+  "timestamp": "14:39",
+  "stocks": {
+    "NVDA": {
+      "change_pct": -2.19,
+      "volume_ratio": 0.87,
+      "price": 185.04
+    },
+    "AAPL": {
+      "change_pct": -0.5,
+      "volume_ratio": 1.04,
+      "price": 259.04
+    },
+    "MSFT": {
+      "change_pct": -1.14,
+      "volume_ratio": 0.78,
+      "price": 478.11
+    },
+    "AMZN": {
+      "change_pct": 1.93,
+      "volume_ratio": 0.82,
+      "price": 246.29
+    },
+    "META": {
+      "change_pct": -0.41,
+      "volume_ratio": 0.65,
+      "price": 646.06
+    },
+    "GOOGL": {
+      "change_pct": 1.06,
+      "volume_ratio": 0.86,
+      "price": 325.44
+    },
+    "TSLA": {
+      "change_pct": 1.02,
+      "volume_ratio": 0.68,
+      "price": 435.8
+    },
+    "BRK-B": {
+      "change_pct": 0.74,
+      "volume_ratio": 1.0,
+      "price": 499.77
+    }
+  },
+  "green_count": 4,
+  "red_count": 4,
+  "alignment_score": 0.5
+}

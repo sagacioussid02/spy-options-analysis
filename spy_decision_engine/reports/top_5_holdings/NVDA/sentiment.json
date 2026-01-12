@@ -1,0 +1,54 @@
+{
+  "overall": {
+    "positive_count": 3,
+    "negative_count": 2,
+    "headline_score": 0.6,
+    "blended_positive": 1,
+    "blended_negative": 0,
+    "blended_score": 1.0
+  },
+  "by_stock": {
+    "NVIDIA": {
+      "headline_score": 0.33,
+      "headline_sentiment": "negative",
+      "mentions": 3,
+      "recent_headlines": [
+        "Nvidia\u2019s reportedly asking Chinese customers to pay upfront for its H200 AI chips",
+        "Archer Aviation To Outfit Air Taxis With Nvidia's AI Tech, Stock Jumps",
+        "Archer Stock Jumps on Partnership With NVIDIA"
+      ],
+      "direct_finbert": {
+        "stock": "NVDA",
+        "sentiment": "positive",
+        "score": 0.444,
+        "confidence": 0.849,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.849
+        }
+      },
+      "blended": {
+        "blended_score": 0.398,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.41,
+          "direct_finbert": 0.59
+        },
+        "headline_contribution": 0.138,
+        "finbert_contribution": 0.26
+      }
+    }
+  },
+  "top_headlines": [
+    "Nvidia\u2019s reportedly asking Chinese customers to pay upfront for its H200 AI chips",
+    "Archer Aviation To Outfit Air Taxis With Nvidia's AI Tech, Stock Jumps",
+    "Archer Stock Jumps on Partnership With NVIDIA"
+  ]
+}

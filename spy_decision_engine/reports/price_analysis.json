@@ -1,0 +1,43 @@
+{
+  "current_price": 694.07,
+  "daily_data": {
+    "open": 690.63,
+    "high": 695.31,
+    "low": 689.18,
+    "close": 694.07,
+    "volume": 80049600,
+    "day_range": 6.13
+  },
+  "technical_levels": {
+    "support": 689.18,
+    "resistance": 695.31,
+    "vwap": 676.63
+  },
+  "entry_prices": {
+    "conservative": 690.41,
+    "at_current": 694.07,
+    "risky": 694.08
+  },
+  "position_sizing": {
+    "volatility": 14.49,
+    "position_size_pct": "MEDIUM-LARGE (20-25%)",
+    "rationale": "Low volatility - comfortable with larger position"
+  },
+  "options_context": {
+    "strike": 694.07,
+    "premium": 5.5,
+    "bid_ask_spread": {
+      "bid": 5.54,
+      "ask": 5.63
+    },
+    "theta_risk": "MODERATE"
+  },
+  "buy_decision": {
+    "decision": "WAIT",
+    "score": 50,
+    "reasons": [
+      "Price above VWAP - bullish",
+      "Trend is bullish"
+    ]
+  }
+}

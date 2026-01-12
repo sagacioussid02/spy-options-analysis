@@ -1,0 +1,125 @@
+{
+  "timestamp": "2026-01-08T11:17:50.890872",
+  "method": "Top-10 Holdings Weighted Analysis",
+  "holdings": {
+    "NVDA": {
+      "company": "NVIDIA Corporation",
+      "weight": 7.73,
+      "score": 100,
+      "trend": "\ud83d\udd3c UP",
+      "timestamp": "2026-01-08T11:17:50.890706"
+    },
+    "AAPL": {
+      "company": "Apple Inc.",
+      "weight": 6.86,
+      "score": 100,
+      "trend": "\ud83d\udd3c UP",
+      "timestamp": "2026-01-08T11:17:50.890724"
+    },
+    "MSFT": {
+      "company": "Microsoft Corporation",
+      "weight": 6.13,
+      "score": 100,
+      "trend": "\ud83d\udd3c UP",
+      "timestamp": "2026-01-08T11:17:50.890733"
+    },
+    "AMZN": {
+      "company": "Amazon.com, Inc.",
+      "weight": 3.83,
+      "score": 100,
+      "trend": "\ud83d\udd3c UP",
+      "timestamp": "2026-01-08T11:17:50.890740"
+    },
+    "GOOGL": {
+      "company": "Alphabet Inc.",
+      "weight": 3.11,
+      "score": 100,
+      "trend": "\ud83d\udd3c UP",
+      "timestamp": "2026-01-08T11:17:50.890746"
+    },
+    "AVGO": {
+      "company": "Broadcom Inc.",
+      "weight": 2.79,
+      "score": 100,
+      "trend": "\ud83d\udd3c UP",
+      "timestamp": "2026-01-08T11:17:50.890752"
+    },
+    "GOOG": {
+      "company": "Alphabet Inc.",
+      "weight": 2.49,
+      "score": 100,
+      "trend": "\ud83d\udd3c UP",
+      "timestamp": "2026-01-08T11:17:50.890758"
+    },
+    "META": {
+      "company": "Meta Platforms, Inc.",
+      "weight": 2.45,
+      "score": 100,
+      "trend": "\ud83d\udd3c UP",
+      "timestamp": "2026-01-08T11:17:50.890764"
+    },
+    "TSLA": {
+      "company": "Tesla, Inc.",
+      "weight": 2.16,
+      "score": 100,
+      "trend": "\ud83d\udd3c UP",
+      "timestamp": "2026-01-08T11:17:50.890769"
+    },
+    "BRK-B": {
+      "company": "Berkshire Hathaway Inc.",
+      "weight": 1.57,
+      "score": 100,
+      "trend": "\ud83d\udd3c UP",
+      "timestamp": "2026-01-08T11:17:50.890775"
+    }
+  },
+  "weighted_scores": {
+    "momentum": 0,
+    "sentiment": 0,
+    "volatility": 0,
+    "alignment": 0
+  },
+  "total_weight": 39.120000000000005,
+  "top_10_composition": {
+    "NVDA": {
+      "company": "NVIDIA Corporation",
+      "percentage": 7.73
+    },
+    "AAPL": {
+      "company": "Apple Inc.",
+      "percentage": 6.86
+    },
+    "MSFT": {
+      "company": "Microsoft Corporation",
+      "percentage": 6.13
+    },
+    "AMZN": {
+      "company": "Amazon.com, Inc.",
+      "percentage": 3.83
+    },
+    "GOOGL": {
+      "company": "Alphabet Inc.",
+      "percentage": 3.11
+    },
+    "AVGO": {
+      "company": "Broadcom Inc.",
+      "percentage": 2.79
+    },
+    "GOOG": {
+      "company": "Alphabet Inc.",
+      "percentage": 2.49
+    },
+    "META": {
+      "company": "Meta Platforms, Inc.",
+      "percentage": 2.45
+    },
+    "TSLA": {
+      "company": "Tesla, Inc.",
+      "percentage": 2.16
+    },
+    "BRK-B": {
+      "company": "Berkshire Hathaway Inc.",
+      "percentage": 1.57
+    }
+  }
+}
