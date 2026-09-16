@@ -1,0 +1,126 @@
+===== decision view @ 2026-06-16 09:00:08 MDT =====
+======================================================================
+SPY OPTIONS DECISION ENGINE
+Local Analysis | January 6, 2026
+======================================================================
+
+📊 Stage 1: Market Analysis
+----------------------------------------------------------------------
+✓ Market Snapshot report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/snapshot.json
+
+✓ FinBert model loaded successfully
+  Analyzing direct FinBert sentiment for mentioned stocks...
+    Querying MSFT... ✓
+    Querying AMZN... ✓
+    Querying SPY... WARNING:utils.data_fetcher:Expiry 2026-01-09 not available for SPY. Using nearest expiry.
+✓
+✓ News Sentiment report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/sentiment.json
+
+✓ SPY Momentum report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/momentum.json
+
+📊 Stage 1.6: Event-Driven Analysis
+----------------------------------------------------------------------
+
+📰 EVENT-DRIVEN ENGINE
+----------------------------------------------------------------------
+No major events detected
+
+📊 Event Analysis:
+   Net Bias: NEUTRAL
+   Confidence: LOW
+   Score: 0.50
+
+✓ Event-driven report written to /reports/event_driven.json
+
+📊 Stage 1.5: Price Analysis
+----------------------------------------------------------------------
+✓ Price Analysis report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/price_analysis.json
+
+📊 Stage 2: Momentum Gate Check
+----------------------------------------------------------------------
+✅ MOMENTUM CONDITIONS MET - Proceeding to Stage 2
+
+📊 Stage 3: Options Analysis
+----------------------------------------------------------------------
+✓ Volatility Filter report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/volatility.json
+
+✓ Options What-If report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/options.json
+
+📊 Stage 4: Final Decision
+----------------------------------------------------------------------
+✓ Final Decision report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/final_decision.json
+
+======================================================================
+DECISION SUMMARY
+======================================================================
+Final Score: 81.3/100
+Decision: BUY SMALL
+Confidence: HIGH
+
+Reasoning:
+  • SPY momentum is bullish (EMA + VWAP aligned)
+  • Mixed signals from top holdings
+  • News sentiment is strongly positive
+  • Volatility environment is favorable for options
+
+All reports saved to /reports directory
+
+✓ Decision saved to database
+
+🎨 Updating dashboard...
+✓ Dashboard updated: /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/dashboard.html
+✓ Dashboard ready at: /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/dashboard.html
+
+[engine] running spy_decision_engine/main.py (this can take a while)...
+================================================================
+DECISION VIEW
+================================================================
+ENGINE SIGNAL (from final_decision.json)
+  decision : BUY SMALL  (score 81.3, confidence HIGH)
+  snapshot : SPY $753.59 at 09:16  (trend BULLISH)
+  intent   : buy 1 SPY limit @ $752.9  (TP $755.44, stop $729.7)
+----------------------------------------------------------------
+[deploy] read agent already hosted: agent_0168hp2GEqSPTGP4iuNXRhNW
+LIVE BRIEFING (read-only agent agent_0168hp2GEqSPTGP4iuNXRhNW)
+  watch live: https://platform.claude.com/workspaces/default/sessions/sesn_013vQk21n91XxoUXAkrTenzZ
+
+    agent: Now let me fetch live SPY quote, portfolio, positions, tradability, and recent orders for the default account:
+    agent: ---
+
+## **BRIEFING: SPY Signal Cross-Check**
+
+### **Live Quote vs. Engine Snapshot**
+- **Engine snapshot:** $753.59 (at 09:16)  
+- **Live quote:** $753.58 (at 15:16 UTC, June 16)  
+- **Status:** ✓ Virtually identical—**signal is fresh, not stale**
+
+### **Entry Limit Analysis**
+- **Suggested limit:** $752.90  
+- **Current bid:** $753.56 / ask: $753.59  
+- **Reality:** Your limit is ~$0.70 **below current market**. At live price, a limit order at $752.90 **will not fill immediately**—it would sit and wait for a pullback. If market drops moderately, fill is plausible; if it rallies, you'll miss the fill.
+
+### **Position & Buying Power**
+- **Current SPY holding:** 0.342830 shares (avg cost $695.10, unrealized gain ~$2.75)  
+- **Account value:** $14,903 | **Buying power:** $9,557.58  
+- **Status:** ✓ **Ample capacity** for 1 SPY (worth ~$753.58)
+
+### **Tradability**
+- **SPY status:** Active, fully tradable (all sessions, fractional eligible, short-selling allowed)  
+- **No restrictions** detected
+
+### **Recent Activity**
+- **Last 10 SPY orders:** All market buys filled at lower prices (ranging $747–$757), mostly recurring daily $3 dollar-based purchases (your drip/automation is active)  
+- **No stuck or rejected orders**—clean order history
+
+---
+
+### **Summary**
+The signal is current and actionable. Your limit at $752.90 is realistically below-market; fills depend on intraday dips. Buying power and tradability are solid. The small existing SPY position and clean recent fills support a new buy entry if you decide to go.
+
+**Your call.**
+
+================================================================
+[cost] claude-haiku-4-5: input 3343 fresh + 4292 cached + 0 written, output 1047
+[cost] estimated this run: $0.0090
+Engine said WHAT to consider; the agent grounded it in your LIVE account + market. Your call.
+

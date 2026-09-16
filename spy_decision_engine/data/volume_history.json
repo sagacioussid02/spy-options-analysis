@@ -1,0 +1,29 @@
+{
+  "contracts": {
+    "SPY_700_CALL": {
+      "ticker": "SPY",
+      "strike": 700,
+      "type": "CALL",
+      "snapshots": [
+        {
+          "date": "2026-01-13",
+          "volume": 15000,
+          "open_interest": 45000,
+          "timestamp": "2026-01-13T14:38:40.934025"
+        },
+        {
+          "date": "2026-01-13",
+          "volume": 18500,
+          "open_interest": 48000,
+          "timestamp": "2026-01-13T14:38:40.934326"
+        },
+        {
+          "date": "2026-01-13",
+          "volume": 21000,
+          "open_interest": 52000,
+          "timestamp": "2026-01-13T14:38:40.934489"
+        }
+      ]
+    }
+  }
+}

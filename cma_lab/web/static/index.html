@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SPY Advisor</title>
+<style>
+  :root { --bg:#0e1116; --panel:#161b22; --line:#2a3038; --txt:#d7dee6; --mut:#8b97a5;
+          --accent:#3b82f6; --green:#2ea043; --red:#da3633; --amber:#d29922; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--txt); }
+  header { padding:10px 16px; border-bottom:1px solid var(--line); display:flex; gap:16px; align-items:center; }
+  header b { font-size:15px; } .risk { color:var(--mut); font-size:12px; }
+  .live { color:var(--red); font-weight:600; } .sim { color:var(--amber); }
+  .wrap { display:grid; grid-template-columns: 1fr 380px; gap:0; height:calc(100vh - 49px); }
+  .col { overflow:auto; padding:14px; } .left { border-right:1px solid var(--line); display:flex; flex-direction:column; }
+  #chat { flex:1; overflow:auto; }
+  .msg { margin:10px 0; white-space:pre-wrap; }
+  .you { color:var(--mut); } .bot { color:var(--txt); }
+  .who { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut); }
+  form { display:flex; gap:8px; padding-top:10px; border-top:1px solid var(--line); }
+  input[type=text] { flex:1; background:var(--panel); border:1px solid var(--line); color:var(--txt); border-radius:8px; padding:9px 11px; }
+  button { background:var(--panel); border:1px solid var(--line); color:var(--txt); border-radius:8px; padding:8px 12px; cursor:pointer; }
+  button:hover { border-color:var(--accent); }
+  .send { background:var(--accent); border-color:var(--accent); color:#fff; }
+  h3 { margin:4px 0 10px; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:10px; }
+  .card .hdr { display:flex; justify-content:space-between; align-items:baseline; }
+  .card .sz { font-weight:600; } .conv { font-size:12px; color:var(--mut); }
+  .card .th { margin:6px 0 10px; color:var(--mut); }
+  .row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .approve { background:var(--green); border-color:var(--green); color:#fff; }
+  .reject { background:transparent; border-color:var(--red); color:var(--red); }
+  .tw { width:64px; } .small { font-size:12px; color:var(--mut); }
+  .jrow { border-bottom:1px solid var(--line); padding:7px 0; font-size:13px; }
+  .badge { font-size:11px; padding:1px 6px; border-radius:6px; border:1px solid var(--line); color:var(--mut); }
+  .pnl-pos { color:var(--green); } .pnl-neg { color:var(--red); }
+</style>
+</head>
+<body>
+<header>
+  <b>SPY Advisor</b>
+  <span id="risk" class="risk">loading…</span>
+</header>
+<div class="wrap">
+  <div class="col left">
+    <div id="chat"></div>
+    <form id="f">
+      <input id="m" type="text" autocomplete="off"
+             placeholder="Ask for a read, or 'propose something if it's worth it'…" />
+      <button class="send" type="submit">Send</button>
+    </form>
+  </div>
+  <div class="col right">
+    <h3>Pending proposals</h3>
+    <div id="proposals"><div class="small">none</div></div>
+    <h3 style="margin-top:18px">Journal</h3>
+    <div id="journal"><div class="small">none</div></div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const api = (p, body) => fetch(p, body ? {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)} : {}).then(r=>r.json());
+
+function addMsg(who, text){
+  const d = document.createElement('div');
+  d.className = 'msg ' + (who==='you'?'you':'bot');
+  d.innerHTML = `<div class="who">${who}</div>` + text.replace(/</g,'&lt;');
+  $('#chat').appendChild(d); $('#chat').scrollTop = 1e9;
+}
+
+async function refreshRisk(){
+  const r = await api('/api/risk');
+  $('#risk').innerHTML = `risk: max ${r.max_shares} sh · $${r.notional_cap} cap · ` +
+    (r.kill_switch ? '<span class="live">KILL SWITCH ON</span> · ' : '') +
+    (r.live ? '<span class="live">LIVE</span>' : '<span class="sim">SIMULATED</span>');
+}
+
+async function refreshProposals(){
+  const ps = await api('/api/proposals');
+  const box = $('#proposals');
+  if(!ps.length){ box.innerHTML = '<div class="small">none</div>'; return; }
+  box.innerHTML = '';
+  for(const p of ps){
+    const lim = p.limit_price ? ` @ $${p.limit_price}` : '';
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `
+      <div class="hdr"><span class="sz">${p.side} ${p.quantity} ${p.symbol} ${p.entry_style}${lim}</span>
+        <span class="conv">conv ${(+p.conviction).toFixed(2)} · ${p.strategy}</span></div>
+      <div class="th">${(p.thesis||'').replace(/</g,'&lt;')}</div>
+      <div class="row">
+        <button class="approve" data-id="${p.id}" data-act="approve">Approve</button>
+        <button class="reject" data-id="${p.id}" data-act="reject">Reject</button>
+        <span class="small">tweak:</span>
+        <input class="tw" type="text" placeholder="qty" data-q="${p.id}">
+        <input class="tw" type="text" placeholder="limit" data-l="${p.id}">
+        <button data-id="${p.id}" data-act="tweak">Apply</button>
+      </div>`;
+    box.appendChild(el);
+  }
+}
+
+async function refreshJournal(){
+  const js = await api('/api/journal');
+  const box = $('#journal');
+  if(!js.length){ box.innerHTML = '<div class="small">none</div>'; return; }
+  box.innerHTML = js.slice().reverse().map(e=>{
+    const pnl = e.pnl==null ? '' :
+      `<span class="${e.pnl>=0?'pnl-pos':'pnl-neg'}">${e.pnl>=0?'+':''}${(+e.pnl).toFixed(2)}</span>`;
+    return `<div class="jrow"><span class="badge">${e.status}</span>
+      ${e.side} ${e.quantity} ${e.symbol} · conv ${(+e.conviction).toFixed(2)} ${pnl}</div>`;
+  }).join('');
+}
+
+function refreshAll(){ refreshRisk(); refreshProposals(); refreshJournal(); }
+
+$('#proposals').addEventListener('click', async (ev)=>{
+  const b = ev.target.closest('button'); if(!b) return;
+  const id = b.dataset.id, act = b.dataset.act;
+  if(act==='approve'){
+    b.disabled = true; b.textContent = '…';
+    const r = await api('/api/approve', {id});
+    addMsg('desk', '✔ ' + r.result);
+  } else if(act==='reject'){
+    await api('/api/reject', {id}); addMsg('desk', 'rejected ' + id);
+  } else if(act==='tweak'){
+    const q = document.querySelector(`[data-q="${id}"]`).value;
+    const l = document.querySelector(`[data-l="${id}"]`).value;
+    await api('/api/tweak', {id, quantity:q||null, limit_price:l||null});
+    addMsg('desk', 'tweaked ' + id);
+  }
+  refreshAll();
+});
+
+$('#f').addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const text = $('#m').value.trim(); if(!text) return;
+  $('#m').value=''; addMsg('you', text);
+  const thinking = document.createElement('div'); thinking.className='msg bot'; thinking.textContent='…';
+  $('#chat').appendChild(thinking);
+  try { const r = await api('/api/chat', {message:text}); thinking.remove(); addMsg('advisor', r.reply); }
+  catch(e){ thinking.remove(); addMsg('advisor', '[error] '+e); }
+  refreshAll();
+});
+
+refreshAll();
+setInterval(refreshProposals, 5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.sidd.spy.scout</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/siddharthshankar/workspace/spy/cma_lab/run_scout.sh</string>
+    </array>
+
+    <!-- Weekly: Sunday (Weekday 0) at 17:00 LOCAL, to set the week's radar. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key><integer>0</integer>
+        <key>Hour</key><integer>17</integer>
+        <key>Minute</key><integer>0</integer>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/siddharthshankar/workspace/spy/cma_lab/briefings/scout.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/siddharthshankar/workspace/spy/cma_lab/briefings/scout.err.log</string>
+</dict>
+</plist>

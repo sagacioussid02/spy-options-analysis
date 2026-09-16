@@ -12,7 +12,7 @@ from typing import Dict, List
 
 sys.path.insert(0, str(Path(__file__).parent / 'spy_decision_engine'))
 
-from utils.quantum_monte_carlo import QuantumMonteCarloOptions
+from experimental.quantum_monte_carlo import QuantumMonteCarloOptions
 
 
 def load_trades() -> List[Dict]:

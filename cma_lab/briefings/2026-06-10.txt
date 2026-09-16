@@ -1,0 +1,39 @@
+===== decision view @ 2026-06-10 08:45:51 MDT =====
+================================================================
+DECISION VIEW
+================================================================
+ENGINE SIGNAL (from final_decision.json)
+  decision : BUY SMALL  (score 81.3, confidence HIGH)
+  snapshot : SPY $694.07 at 14:13  (trend BULLISH)
+  intent   : buy 1 SPY limit @ $687.28  (TP $697.06, stop $664.29)
+----------------------------------------------------------------
+[deploy] read agent already hosted: agent_0168hp2GEqSPTGP4iuNXRhNW
+LIVE BRIEFING (read-only agent agent_0168hp2GEqSPTGP4iuNXRhNW)
+  watch live: https://platform.claude.com/workspaces/default/sessions/sesn_01GUNhEJJxNHzi5sGrsnEtvp
+
+    agent: Now I'll fetch live SPY quote, portfolio, positions, tradability, and recent orders in parallel. I'll use the default margin account (587714478):
+    agent: ## BRIEFING: SPY Buy Signal Cross-Check
+
+**Signal Status: STALE**
+
+| Check | Result |
+|-------|--------|
+| **Live SPY Price** | $735.27 (14:46 UTC) — up **+$41.20 (+6.3%)** from engine snapshot ($694.07 at 14:13) |
+| **Drift & Momentum** | Signal is stale; SPY has risen sharply since the snapshot was taken ~hours ago. |
+| **Suggested Limit Entry** | $687.28 — **NO, will not fill.** Current price $735.27 is **+$47.99 above** your limit; order sits dead unless SPY corrects hard. |
+| **Buying Power** | **$10,319** available (margin account). ✓ Sufficient for 1 SPY share. |
+| **Current SPY Position** | **0.327 shares @ $692.85 avg cost** — already long. Buying more adds to existing position. |
+| **Tradability** | ✓ SPY is fully tradable (regular hours, fractional, short-sell enabled). No restrictions. |
+| **Recent Order Activity** | Heavy recurring $3 buys + two manual 1-share fills (Mar 13, Feb 20) + one 1.06-share sell (Feb 20). Pattern shows dollar-cost-averaging in place. No open orders visible. |
+
+**Key Risk:** Your engine's signal was based on a much lower price environment. SPY has run ~6% higher. A limit order at $687.28 is unlikely to execute unless there's a sharp reversal. If you still want exposure, consider:
+- Market entry now (~$735) vs. waiting for a pullback
+- Scaling in gradually vs. waiting for the limit to hit
+
+**Your call.**
+
+================================================================
+[cost] claude-haiku-4-5: input 3326 fresh + 4265 cached + 0 written, output 1022
+[cost] estimated this run: $0.0089
+Engine said WHAT to consider; the agent grounded it in your LIVE account + market. Your call.
+

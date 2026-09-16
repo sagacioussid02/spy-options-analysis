@@ -11,7 +11,7 @@ from pathlib import Path
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent / 'spy_decision_engine'))
 
-from utils.quantum_monte_carlo import QuantumMonteCarloOptions, print_comparison
+from experimental.quantum_monte_carlo import QuantumMonteCarloOptions, print_comparison
 
 
 def test_spy_current_trade():

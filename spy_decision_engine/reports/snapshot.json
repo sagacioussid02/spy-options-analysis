@@ -1,48 +1,48 @@
 {
-  "timestamp": "20:25",
+  "timestamp": "08:47",
   "stocks": {
     "NVDA": {
-      "change_pct": -0.11,
-      "volume_ratio": 0.71,
-      "price": 184.82
+      "change_pct": 0.74,
+      "volume_ratio": 0.22,
+      "price": 212.52
     },
     "AAPL": {
-      "change_pct": 0.13,
-      "volume_ratio": 0.88,
-      "price": 259.37
+      "change_pct": -0.98,
+      "volume_ratio": 0.14,
+      "price": 329.81
     },
     "MSFT": {
-      "change_pct": 0.24,
-      "volume_ratio": 0.8,
-      "price": 479.28
+      "change_pct": -1.18,
+      "volume_ratio": 0.11,
+      "price": 499.46
     },
     "AMZN": {
-      "change_pct": 0.41,
-      "volume_ratio": 0.77,
-      "price": 247.34
+      "change_pct": -1.92,
+      "volume_ratio": 0.19,
+      "price": 248.66
     },
     "META": {
-      "change_pct": 1.08,
-      "volume_ratio": 0.65,
-      "price": 653.06
+      "change_pct": -0.06,
+      "volume_ratio": 0.34,
+      "price": 665.2
     },
     "GOOGL": {
-      "change_pct": 0.96,
-      "volume_ratio": 0.73,
-      "price": 328.57
+      "change_pct": -1.36,
+      "volume_ratio": 0.19,
+      "price": 344.65
     },
     "TSLA": {
-      "change_pct": 2.11,
-      "volume_ratio": 0.85,
-      "price": 445.01
+      "change_pct": -0.38,
+      "volume_ratio": 0.21,
+      "price": 357.57
     },
     "BRK-B": {
-      "change_pct": 0.12,
-      "volume_ratio": 0.6,
-      "price": 499.1
+      "change_pct": 0.1,
+      "volume_ratio": 0.13,
+      "price": 515.48
     }
   },
-  "green_count": 7,
-  "red_count": 1,
-  "alignment_score": 0.88
+  "green_count": 2,
+  "red_count": 6,
+  "alignment_score": 0.25
 }

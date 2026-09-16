@@ -1,0 +1,56 @@
+===== decision view @ 2026-06-12 08:54:30 MDT =====
+================================================================
+DECISION VIEW
+================================================================
+ENGINE SIGNAL (from final_decision.json)
+  decision : BUY SMALL  (score 81.3, confidence HIGH)
+  snapshot : SPY $694.07 at 14:13  (trend BULLISH)
+  intent   : buy 1 SPY limit @ $687.28  (TP $697.06, stop $664.29)
+----------------------------------------------------------------
+[deploy] read agent already hosted: agent_0168hp2GEqSPTGP4iuNXRhNW
+LIVE BRIEFING (read-only agent agent_0168hp2GEqSPTGP4iuNXRhNW)
+  watch live: https://platform.claude.com/workspaces/default/sessions/sesn_01JU8APdRonL3dVcGHNcZBZ6
+
+    agent: Now fetching live market data, portfolio, positions, tradability, and recent orders in parallel:
+    agent: ---
+
+## **SPY Signal Briefing**
+
+### **Live Market Check:**
+- **Live SPY quote** (as of 14:54 UTC, June 12, 2026): **$741.01** last trade  
+- **Engine snapshot** (14:13 UTC): **$694.07**  
+- **Signal age:** ~41 minutes old; **market has drifted +$46.94 (+6.8%) since the snapshot.**  
+The signal is **stale**. SPY has moved substantially higher.
+
+---
+
+### **Entry Plausibility Check:**
+The engine proposes a **limit order at $687.28**. Live bid/ask: **$740.99 / $741.03**.  
+→ **Your limit is $53.71 below** the current market. Fill is **not plausible**—the market would need to drop nearly 5.5% for that limit to execute. No fill risk; high miss risk.
+
+---
+
+### **Capital & Position:**
+- **Buying power:** $9,894.53  
+- **Current SPY holding:** 0.3348 shares (avg cost $693.83)  
+- **Account equity:** $29,219.49 (with $15,243.42 margin debt)  
+→ You have ample capital to buy 1 share. Margin ratio is elevated but not extreme.
+
+---
+
+### **Tradability & Activity:**
+- **SPY tradable:** ✅ Yes (individual account, fractional enabled, all sessions open)  
+- **Recent order pattern:** Heavy recurring micro-buys ($3 daily for months, now at higher prices). Manual buys on Feb 20, Mar 11, 13, 20 & Apr 16. No blocking issues.
+
+---
+
+### **Summary:**
+The engine's **score and confidence are no longer grounded**—SPY is 7% above the snapshot price. The limit at $687.28 is a 5.5% cushion below today's level; it won't fill unless there's a sharp reversal. If you still want exposure, you'd need to revise the entry target upward or switch to market. Your account can handle the size.
+
+**Your call.**
+
+================================================================
+[cost] claude-haiku-4-5: input 3326 fresh + 4251 cached + 0 written, output 1075
+[cost] estimated this run: $0.0091
+Engine said WHAT to consider; the agent grounded it in your LIVE account + market. Your call.
+

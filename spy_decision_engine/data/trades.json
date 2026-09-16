@@ -15,7 +15,7 @@
         "engine_confidence": 79.9,
         "engine_recommendation": "High confidence bullish setup",
         "predicted_direction": "UP",
-        "reason": "High confidence bullish setup"
+        "reason": "Momentum: High confidence bullish setup - strong technicals"
       },
       "exit": {
         "price": 2.5,
@@ -51,7 +51,7 @@
         "engine_confidence": 79.9,
         "engine_recommendation": "Trade recommendation",
         "predicted_direction": "UP",
-        "reason": "Short-term directional bias"
+        "reason": "Momentum: Short-term directional bias - bullish continuation"
       },
       "exit": {
         "price": 3.08,
@@ -79,7 +79,7 @@
         "engine_confidence": 79.9,
         "engine_recommendation": "Trade recommendation",
         "predicted_direction": "UP",
-        "reason": "Short-term directional bias"
+        "reason": "Momentum: Short-term directional bias - bullish continuation"
       },
       "exit": {
         "price": 3.08,
@@ -107,7 +107,7 @@
         "engine_confidence": 79.8,
         "engine_recommendation": "Trade recommendation",
         "predicted_direction": "UP",
-        "reason": "Short-term directional bias"
+        "reason": "Mixed: Short-term directional bias without strong conviction"
       },
       "exit": {
         "price": 3.55,
@@ -119,6 +119,287 @@
         "reason": "Manual exit - sold today"
       },
       "analysis": null
+    },
+    {
+      "trade_id": "2026-01-13-005",
+      "date": "2026-01-13",
+      "instrument": "SPY Call",
+      "strike": 700,
+      "expiry_dte": 3,
+      "entry": {
+        "price": 692.82,
+        "time": "10:15",
+        "premium_paid": 0.61,
+        "contracts": 1,
+        "total_cost": 61.0,
+        "engine_confidence": 67.0,
+        "engine_recommendation": "BUY - Contrarian Position",
+        "predicted_direction": "UP",
+        "reason": "Contrarian bet on bullish sentiment reversal despite bearish technicals"
+      },
+      "exit": {
+        "price": 693.5,
+        "time": "14:30",
+        "premium_sold": 0.04,
+        "proceeds": 4.0,
+        "profit": -57.0,
+        "profit_pct": -93.44262295081967,
+        "reason": "Stop loss on contrarian position - trade did not work out"
+      },
+      "analysis": {
+        "predicted_direction": "UP",
+        "actual_direction": "UP",
+        "prediction_correct": true,
+        "spy_move": 0.68,
+        "move_pct": 0.1,
+        "profit_realized": -8.999999999999996,
+        "lesson": "\u2713 Low confidence trade worked anyway. Lucky? Or missed a signal?"
+      }
+    },
+    {
+      "trade_id": "2026-01-14-006",
+      "date": "2026-01-14",
+      "instrument": "SPY Call",
+      "strike": 700,
+      "expiry_dte": 3,
+      "entry": {
+        "price": 688.34,
+        "time": "13:55",
+        "premium_paid": 0.27,
+        "contracts": 1,
+        "total_cost": 27.0,
+        "engine_confidence": 68.2,
+        "engine_recommendation": "RECOVERY: SPY down 1% last week, confidence 77, expecting bounce/reversion play. Mean reversion to 700.",
+        "predicted_direction": "UP",
+        "reason": "RECOVERY: SPY down 1% last week, confidence 77, expecting bounce/reversion play. Mean reversion to 700."
+      },
+      "exit": {
+        "price": 693.5,
+        "time": "14:35",
+        "premium_sold": 0.52,
+        "proceeds": 52.0,
+        "profit": 25.0,
+        "profit_pct": 92.5925925925926,
+        "reason": "40% profit taken - mean reversion played out, SPY bounced up from 688.34 to 693.50"
+      },
+      "analysis": {
+        "predicted_direction": "UP",
+        "actual_direction": "UP",
+        "prediction_correct": true,
+        "spy_move": 0.16,
+        "move_pct": 0.02,
+        "profit_realized": -23.0,
+        "lesson": "\u2713 Low confidence trade worked anyway. Lucky? Or missed a signal?"
+      }
+    },
+    {
+      "trade_id": "2026-01-23-007",
+      "date": "2026-01-23",
+      "instrument": "SPY Call",
+      "strike": 695,
+      "expiry_dte": 4,
+      "entry": {
+        "price": 688.77,
+        "time": "14:00",
+        "premium_paid": 0.38,
+        "contracts": 5,
+        "total_cost": 190.0,
+        "engine_confidence": 72.0,
+        "engine_recommendation": "SENTIMENT: Positive sentiment on SPY stocks despite bearish conditions",
+        "predicted_direction": "UP",
+        "reason": "SENTIMENT: Bearish short-term but positive sentiment on SPY related stocks. SPY hovering around 688 - expecting rebound with sector strength."
+      },
+      "exit": {
+        "date": "2026-01-26",
+        "price": 0.62,
+        "time": "14:30",
+        "premium_sold": 0.62,
+        "proceeds": 310.0,
+        "profit": 120.0,
+        "profit_pct": 63.16,
+        "reason": "Manual exit - sold to realize some profit"
+      },
+      "analysis": {
+        "predicted_direction": "UP",
+        "actual_direction": "UP",
+        "prediction_correct": true,
+        "profit_realized": 120.0,
+        "lesson": "\u2713 Took profit on 695 Call before expiry"
+      }
+    },
+    {
+      "trade_id": "2026-01-26-BUY-001",
+      "date": "2026-01-26",
+      "instrument": "SPY Call",
+      "strike": 700,
+      "expiry_dte": 2,
+      "entry": {
+        "price": 0.27,
+        "time": "14:30",
+        "premium_paid": 0.27,
+        "contracts": 1,
+        "total_cost": 27.0,
+        "engine_confidence": 75,
+        "predicted_direction": "UP",
+        "spy_price_at_entry": 692.8,
+        "reason": "Sentiment: Bullish sentiment on earnings week - buying SPY options for appreciation potential"
+      },
+      "analysis": {
+        "predicted_direction": "UP",
+        "spy_move": -3.980000000000018,
+        "move_pct": -0.5685714285714312,
+        "profit_realized": 9.0,
+        "lesson": "\u2713 Profit lock-in strategy successful. Small but certain profit taken vs holding for larger move."
+      },
+      "exit": {
+        "price": 696.02,
+        "time": "12:24",
+        "premium_sold": 0.36,
+        "proceeds": 36.0,
+        "profit": 9.0,
+        "profit_pct": 33.33333333333333,
+        "reason": "Small $9 profit lock-in. SPY at peak for day (696.02). Risk/reward no longer favorable, taking profit and closing position"
+      }
+    },
+    {
+      "trade_id": "2026-01-26-009",
+      "date": "2026-01-26",
+      "instrument": "SPY Call",
+      "strike": 695,
+      "expiry_dte": 2,
+      "entry": {
+        "price": 693.8,
+        "time": "12:54",
+        "premium_paid": 1.95,
+        "contracts": 1,
+        "total_cost": 195.0,
+        "engine_confidence": 81.1,
+        "engine_recommendation": "High Confidence: 81.1% | SPY momentum bullish (EMA + VWAP aligned) | Mixed signals from top holdings | News sentiment strongly positive | Volatility favorable for options",
+        "predicted_direction": "UP",
+        "reason": "High Confidence: 81.1% | SPY momentum bullish (EMA + VWAP aligned) | Mixed signals from top holdings | News sentiment strongly positive | Volatility favorable for options"
+      },
+      "exit": {
+        "price": 696.02,
+        "time": "12:26",
+        "premium_sold": 2.59,
+        "proceeds": 259.0,
+        "profit": 64.0,
+        "profit_pct": 32.82051282051282,
+        "reason": "Profit taking on $695 call. Strong price action at $696.02 near strike."
+      },
+      "analysis": {
+        "predicted_direction": "UP",
+        "spy_move": 1.0199999999999818,
+        "move_pct": 0.14676258992805494,
+        "profit_realized": 64.0,
+        "lesson": "\u2713 Bullish prediction correct. SPY moved +$1.02, sold call at profit."
+      }
+    },
+    {
+      "trade_id": "2026-01-27-010",
+      "date": "2026-01-27",
+      "instrument": "SPY Call",
+      "strike": 709,
+      "expiry_dte": 3,
+      "entry": {
+        "price": 695.52,
+        "time": "14:02",
+        "premium_paid": 0.02,
+        "contracts": 10,
+        "total_cost": 20.0,
+        "engine_confidence": 79.6,
+        "engine_recommendation": "High confidence 79.6% | Strong sentiment 0.71/1.0 | RSI 54 underbought | Bullish trend | Good risk/reward for upside move to 09",
+        "predicted_direction": "UP",
+        "reason": "High confidence 79.6% | Strong sentiment 0.71/1.0 | RSI 54 underbought | Bullish trend | Good risk/reward for upside move to 09"
+      },
+      "exit": {
+        "price": 695.52,
+        "time": "14:13",
+        "premium_sold": 0.02,
+        "proceeds": 20.0,
+        "profit": 0.0,
+        "profit_pct": 0.0,
+        "reason": "Position closed at break-even. Strike 09 not reached before expiration. Lost premium invested"
+      },
+      "analysis": {
+        "predicted_direction": "UP",
+        "actual_direction": "UP",
+        "prediction_correct": true,
+        "spy_move": 0.0,
+        "move_pct": 0.0,
+        "profit_realized": 0.0,
+        "lesson": "\u2713 Low confidence trade worked anyway. Lucky? Or missed a signal?"
+      }
+    },
+    {
+      "trade_id": "2026-01-28-011",
+      "date": "2026-01-28",
+      "instrument": "SPY Call",
+      "strike": 700,
+      "expiry_dte": 1,
+      "entry": {
+        "price": 697.0,
+        "time": "08:19",
+        "premium_paid": 1.5,
+        "contracts": 1,
+        "total_cost": 150.0,
+        "engine_confidence": 80.0,
+        "engine_recommendation": "Impulse BUY | High confidence >80% | Day trade setup | Quick decision based on signal strength",
+        "predicted_direction": "UP",
+        "reason": "Impulse BUY | High confidence >80% | Day trade setup | Quick decision based on signal strength"
+      },
+      "exit": {
+        "price": 697.0,
+        "time": "08:19",
+        "premium_sold": 1.28,
+        "proceeds": 128.0,
+        "profit": -22.0,
+        "profit_pct": -14.666666666666666,
+        "reason": "Day trade exit at loss. Impulse buy didn't work as expected. Quick exit to minimize losses."
+      },
+      "analysis": {
+        "predicted_direction": "UP",
+        "spy_move": -3.0,
+        "move_pct": -0.4285714285714286,
+        "profit_realized": -22.0,
+        "lesson": "\u2717 High confidence doesn't always = profits. SPY moved against position. Day trade loss on impulse entry."
+      }
+    },
+    {
+      "trade_id": "2026-01-28-012",
+      "date": "2026-01-28",
+      "instrument": "SPY Call",
+      "strike": 706,
+      "expiry_dte": 2,
+      "entry": {
+        "price": 695.72,
+        "time": "12:55",
+        "premium_paid": 0.14,
+        "contracts": 10,
+        "total_cost": 140.0,
+        "engine_confidence": 76.2,
+        "engine_recommendation": "Bullish trend, sentiment 0.82 (strong), RSI 56.8, confidence 76.2% exceeds 75% threshold",
+        "predicted_direction": "UP",
+        "reason": "Bullish trend, sentiment 0.82 (strong), RSI 56.8, confidence 76.2% exceeds 75% threshold"
+      },
+      "exit": {
+        "price": 695.0,
+        "time": "14:11",
+        "premium_sold": 0.04,
+        "proceeds": 40.0,
+        "profit": -100.0,
+        "profit_pct": -71.42857142857143,
+        "reason": "Earnings season risk from META, TSLA, MSFT. Reducing exposure. Closed at loss to preserve capital"
+      },
+      "analysis": {
+        "predicted_direction": "UP",
+        "actual_direction": "DOWN",
+        "prediction_correct": false,
+        "spy_move": -0.72,
+        "move_pct": -0.1,
+        "profit_realized": -100.0,
+        "lesson": "\u2717 Low confidence trade failed as expected. Should have skipped."
+      }
     }
   ],
   "summary": {

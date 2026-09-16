@@ -1,0 +1,33 @@
+{
+  "SPY_700_CALL": {
+    "contract": "SPY_700_CALL",
+    "analysis": "FAVORABLE",
+    "liquidity_score": 74.2,
+    "volume_trend": "INCREASING",
+    "volume_change_pct": 40.0,
+    "oi_trend": "INCREASING",
+    "oi_change_pct": 15.555555555555555,
+    "signals": [
+      {
+        "type": "VOLUME_SURGE",
+        "strength": "strong",
+        "meaning": "High interest in contract"
+      },
+      {
+        "type": "OI_ACCUMULATION",
+        "strength": "strong",
+        "meaning": "New positions being built"
+      },
+      {
+        "type": "MOMENTUM_BUILDING",
+        "strength": "strong",
+        "meaning": "Both interest and positions growing"
+      }
+    ],
+    "recommendation": "\u2705 GOOD - High liquidity, strong volume",
+    "confidence": 1.0,
+    "note": "Based on 3 snapshots over 3 days"
+  },
+  "timestamp": "2026-01-13T14:38:40.938379",
+  "total_contracts": 2
+}

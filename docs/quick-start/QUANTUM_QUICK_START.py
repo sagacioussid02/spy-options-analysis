@@ -84,13 +84,13 @@ print("""
 
   CURRENT APPROACH (GOOD):
   ──────────────────────────
-  from spy_decision_engine.utils.option_pricing import black_scholes_call
+  from spy_decision_engine.experimental.option_pricing import black_scholes_call
   price = black_scholes_call(S=689.56, K=688, r=0.045, sigma=0.18, T=2/365)
   # Result: $4.59 in < 1ms ✅
 
   QUANTUM APPROACH (LEARNING):
   ──────────────────────────
-  from spy_decision_engine.utils.quantum_monte_carlo import QuantumMonteCarloOptions
+  from spy_decision_engine.experimental.quantum_monte_carlo import QuantumMonteCarloOptions
   qmc = QuantumMonteCarloOptions(S=689.56, K=688, r=0.045, sigma=0.18, T=2/365)
   price = qmc.black_scholes('call')     # Still use BS, not quantum
   # Result: $4.59 in < 1ms ✅
@@ -279,7 +279,7 @@ print("""
 # Print your actual trade analysis
 print("\n\n🎯 YOUR SPY $688 CALL - QUANTUM ANALYSIS:\n")
 
-from spy_decision_engine.utils.quantum_monte_carlo import QuantumMonteCarloOptions
+from spy_decision_engine.experimental.quantum_monte_carlo import QuantumMonteCarloOptions
 
 qmc = QuantumMonteCarloOptions(689.56, 688, 0.045, 0.18, 2/365)
 results = qmc.compare_methods('call')

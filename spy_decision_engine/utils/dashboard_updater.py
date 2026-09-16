@@ -286,13 +286,13 @@ class DashboardUpdater:
     def _generate_sentiment_section(self, sentiment: dict) -> str:
         """Generate sentiment analysis section."""
         overall = sentiment.get("overall_sentiment", 0.5)
-        articles = sentiment.get("articles", [])
+        articles = sentiment.get("articles") or []
         
         sentiment_color = "#85c929" if overall > 0.55 else "#e74c3c" if overall < 0.45 else "#f39c12"
         sentiment_label = "BULLISH" if overall > 0.55 else "BEARISH" if overall < 0.45 else "NEUTRAL"
         
         articles_html = ""
-        for article in articles[:3]:  # Top 3 articles
+        for article in (articles or [])[:3]:  # Top 3 articles
             # Handle both dict and string formats for articles
             if isinstance(article, dict):
                 headline = article.get('headline', 'Unknown')
@@ -359,29 +359,31 @@ class DashboardUpdater:
             else:
                 entry_premium = entry.get("price", entry.get("entry_premium", 0))
             
-            # Get current/exit premium - try premium_sold first, then price
-            if "premium_sold" in exit_data:
-                current_premium = exit_data.get("premium_sold", entry_premium)
-            else:
-                current_premium = exit_data.get("price", entry_premium)
-            
-            # Check if trade is closed (has exit data)
+            # Check if trade is closed (has exit data with profit)
             if exit_data and exit_data.get("profit") is not None:
+                # CLOSED TRADE
                 pnl = exit_data.get("profit", 0)
                 pnl_pct = exit_data.get("profit_pct", 0)
                 status = "✅" if pnl > 0 else "❌"
                 row_class = "trade-positive" if pnl > 0 else "trade-negative"
+                
                 # For closed trades, use exit premium
                 if "premium_sold" in exit_data:
-                    exit_premium = exit_data.get("premium_sold", current_premium)
+                    current_premium = exit_data.get("premium_sold", entry_premium)
+                    exit_premium = exit_data.get("premium_sold", entry_premium)
                 else:
-                    exit_premium = exit_data.get("price", current_premium)
+                    current_premium = exit_data.get("price", entry_premium)
+                    exit_premium = exit_data.get("price", entry_premium)
             else:
-                exit_premium = current_premium
-                pnl = (current_premium - entry_premium) * qty * 100 if entry_premium else 0
-                pnl_pct = ((current_premium - entry_premium) / entry_premium * 100) if entry_premium else 0
+                # OPEN TRADE - show as current (not yet exited)
                 status = "📊"
-                row_class = "trade-positive" if pnl > 0 else "trade-negative"
+                # For open trades, we don't have current market premium on dashboard
+                # So show entry premium as current until exited
+                current_premium = entry_premium
+                exit_premium = entry_premium  # Not yet exited
+                pnl = 0  # Can't calculate without current market data
+                pnl_pct = 0
+                row_class = "trade-open"
             
             rows += f"""<tr class="{row_class}">
             <td>{trade_id}</td>
@@ -405,7 +407,7 @@ class DashboardUpdater:
         for trade in trades_list:
             # Handle nested entry/exit structure
             entry = trade.get("entry", {})
-            exit_data = trade.get("exit", {})
+            exit_data = trade.get("exit") or {}
             
             qty = entry.get("contracts", trade.get("quantity", 0))
             total_contracts += qty
@@ -421,11 +423,13 @@ class DashboardUpdater:
                 else:
                     entry_price = entry.get("price", 0)
                 
-                # Try premium_sold first, then price
-                if "premium_sold" in exit_data:
+                # Try premium_sold first, then price (only if exit_data is not empty)
+                if exit_data and "premium_sold" in exit_data:
                     current_price = exit_data.get("premium_sold", entry_price)
-                else:
+                elif exit_data and "price" in exit_data:
                     current_price = exit_data.get("price", entry_price)
+                else:
+                    current_price = entry_price
                 
                 if entry_price:
                     pnl = (current_price - entry_price) * qty * 100
@@ -452,7 +456,7 @@ class DashboardUpdater:
         decision = final_decision.get("decision", "HOLD")
         score = final_decision.get("final_score", 50)
         confidence = final_decision.get("confidence", "MEDIUM")
-        explanation = final_decision.get("recommendation", {}).get("explanation", [])
+        explanation = final_decision.get("recommendation", {}).get("explanation") or []
         
         decision_color = self._get_decision_color(decision)
         components_data = self._generate_components_chart_data(final_decision)
@@ -473,7 +477,7 @@ class DashboardUpdater:
         
         # Build explanation HTML before f-string
         explanation_html = ""
-        for point in explanation:
+        for point in (explanation or []):
             explanation_html += f"\n                        <li>{point}</li>"
         
         html = f"""

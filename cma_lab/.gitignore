@@ -1,0 +1,9 @@
+# never commit secrets or local CMA resource IDs
+.env
+cma_state.json
+# personal trade data + tunable risk overrides
+journal.json
+risk_overrides.json
+lessons.md
+risk_suggestions.json
+radar.json

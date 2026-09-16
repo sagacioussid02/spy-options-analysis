@@ -1,36 +1,72 @@
 {
   "overall": {
-    "positive_count": 14,
-    "negative_count": 7,
-    "headline_score": 0.67,
-    "blended_positive": 4,
+    "positive_count": 16,
+    "negative_count": 4,
+    "headline_score": 0.8,
+    "blended_positive": 6,
     "blended_negative": 0,
-    "blended_score": 1.0
+    "blended_score": 0.86
   },
   "top_headlines": [
-    "The December CPI May Bring A Hot Surprise For Markets",
-    "5 Considerations In The Upcoming CPI Report",
-    "DLN: Diversified Large Value ETF With Risk Screening",
-    "Apple Has What It Takes To Keep Growing Through 2030",
-    "Google bolsters bet on AI-powered commerce with new platform for shopping agents ",
-    "How the AI data center bubble story is playing out inside one booming energy stock",
-    "Oklo's Meta Power Agreement; The Narrative Just Flipped Bullish (Rating Upgrade)",
-    "The Trade Desk: Why I'm Not Buying Despite A Large Upside Potential",
-    "Walmart teams up with Google's Gemini to make it easier for shoppers to find and buy products",
-    "Tesla: The Elon Premium Is Off The Charts",
-    "Behind Anthropic's stunning growth is a sibling team that may hold the key to generative AI",
-    "What We Can Learn From Warren Buffett's Mistakes Going Forward",
-    "5 Things That Won't Happen In 2026 (The Alpha Of Inertia)",
-    "January Dogs Of The Dow: One Ideal 'Safer' Dividend Buy",
-    "Economic Digest: Nepal\u2019s Business News in a Snap"
+    "Breadth Weakens Again, but the Broader Trend Remains Neutral With a Negative Bias",
+    "There Are Plenty of Eli Lilly Bulls: Here\u2019s What They Aren\u2019t Telling You",
+    "Announcing Koa: Salesforce\u2019s First CRM Reasoning Model, Built on NVIDIA Nemotron",
+    "Vertical Data Secures $192 Million AI Infrastructure Commitment for Global AI Developer",
+    "Cloudflare Helps End the Search-or-AI-Training Tradeoff",
+    "Apple\u2019s Outstanding Comedy Widow\u2019s Bay triumphs as the most decorated freshman comedy in Emmy history and Apple TV leads as the most awarded network at the 78th Primetime Emmy Awards",
+    "Latest News In Cloud AI - Bitdeer AI Expands With New AI Cloud Data Center",
+    "DG Matrix Appoints Daniel Doimo, MGE UPS Systems Co-Founder and Former Schneider Electric Executive Vice President, to Executive Advisory Board",
+    "Is It Worth Investing in Amazon (AMZN) Based on Wall Street's Bullish Views?",
+    "Amazon AWS Says Access Cannot Be Restored to Bahrain Facility After War Damage",
+    "Cathie Wood Makes Striking Switch Between AI Stock Giants",
+    "Fifty-Five Analysts Cover Meta and None Say Sell",
+    "2 Stocks That Will Cash In When Anthropic Goes Public",
+    "Elon Musk Makes Strongest Hint Yet About A Tesla-SpaceX Merger",
+    "How Deep Does the AI Doom and Gloom Run? \u2018We Don\u2019t Know\u2019 Is the Only Sure Answer."
   ],
   "by_stock": {
+    "NVIDIA": {
+      "headline_score": 1.0,
+      "headline_sentiment": "positive",
+      "mentions": 2,
+      "recent_headlines": [
+        "Announcing Koa: Salesforce\u2019s First CRM Reasoning Model, Built on NVIDIA Nemotron",
+        "Meta, Alphabet and Microsoft Rise While Nvidia Falls After Three AI Chiefs Call For Slowing Down Frontier Models"
+      ],
+      "direct_finbert": {
+        "stock": "NVDA",
+        "sentiment": "positive",
+        "score": 0.444,
+        "confidence": 0.849,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.849
+        }
+      },
+      "blended": {
+        "blended_score": 0.622,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.32,
+          "direct_finbert": 0.68
+        },
+        "headline_contribution": 0.32,
+        "finbert_contribution": 0.302
+      }
+    },
     "Apple": {
       "headline_score": 0.0,
       "headline_sentiment": "negative",
       "mentions": 1,
       "recent_headlines": [
-        "Apple Has What It Takes To Keep Growing Through 2030"
+        "Apple\u2019s Outstanding Comedy Widow\u2019s Bay triumphs as the most decorated freshman comedy in Emmy history and Apple TV leads as the most awarded network at the 78th Primetime Emmy Awards"
       ],
       "direct_finbert": {
         "stock": "AAPL",
@@ -60,12 +96,84 @@
         "finbert_contribution": 0.44
       }
     },
-    "Meta": {
-      "headline_score": 0.0,
-      "headline_sentiment": "negative",
+    "Microsoft": {
+      "headline_score": 0.5,
+      "headline_sentiment": "neutral",
       "mentions": 1,
       "recent_headlines": [
-        "Oklo's Meta Power Agreement; The Narrative Just Flipped Bullish (Rating Upgrade)"
+        "Meta, Alphabet and Microsoft Rise While Nvidia Falls After Three AI Chiefs Call For Slowing Down Frontier Models"
+      ],
+      "direct_finbert": {
+        "stock": "MSFT",
+        "sentiment": "positive",
+        "score": 0.567,
+        "confidence": 0.785,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.785
+        }
+      },
+      "blended": {
+        "blended_score": 0.553,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.2,
+          "direct_finbert": 0.8
+        },
+        "headline_contribution": 0.102,
+        "finbert_contribution": 0.452
+      }
+    },
+    "Amazon": {
+      "headline_score": 1.0,
+      "headline_sentiment": "positive",
+      "mentions": 2,
+      "recent_headlines": [
+        "Is It Worth Investing in Amazon (AMZN) Based on Wall Street's Bullish Views?",
+        "Amazon AWS Says Access Cannot Be Restored to Bahrain Facility After War Damage"
+      ],
+      "direct_finbert": {
+        "stock": "AMZN",
+        "sentiment": "positive",
+        "score": 0.503,
+        "confidence": 0.82,
+        "source": "direct_finbert_query",
+        "breakdown": {
+          "positive_prompts": 2,
+          "negative_prompts": 1,
+          "neutral_prompts": 0,
+          "avg_confidence": 0.82
+        }
+      },
+      "blended": {
+        "blended_score": 0.666,
+        "blended_sentiment": "positive",
+        "sources": [
+          "headlines",
+          "direct_finbert"
+        ],
+        "weights": {
+          "headlines": 0.33,
+          "direct_finbert": 0.67
+        },
+        "headline_contribution": 0.328,
+        "finbert_contribution": 0.338
+      }
+    },
+    "Meta": {
+      "headline_score": 1.0,
+      "headline_sentiment": "positive",
+      "mentions": 2,
+      "recent_headlines": [
+        "Fifty-Five Analysts Cover Meta and None Say Sell",
+        "Meta, Alphabet and Microsoft Rise While Nvidia Falls After Three AI Chiefs Call For Slowing Down Frontier Models"
       ],
       "direct_finbert": {
         "stock": "META",
@@ -81,117 +189,78 @@
         }
       },
       "blended": {
-        "blended_score": 0.398,
+        "blended_score": 0.658,
         "blended_sentiment": "positive",
         "sources": [
           "headlines",
           "direct_finbert"
         ],
         "weights": {
-          "headlines": 0.19,
-          "direct_finbert": 0.81
+          "headlines": 0.32,
+          "direct_finbert": 0.68
         },
-        "headline_contribution": 0.0,
-        "finbert_contribution": 0.398
+        "headline_contribution": 0.325,
+        "finbert_contribution": 0.333
       }
     },
     "Google": {
-      "headline_score": 0.0,
-      "headline_sentiment": "negative",
-      "mentions": 2,
-      "recent_headlines": [
-        "Google bolsters bet on AI-powered commerce with new platform for shopping agents ",
-        "Walmart teams up with Google's Gemini to make it easier for shoppers to find and buy products"
-      ],
-      "direct_finbert": {
-        "stock": "GOOGL",
-        "sentiment": "positive",
-        "score": 0.559,
-        "confidence": 0.785,
-        "source": "direct_finbert_query",
-        "breakdown": {
-          "positive_prompts": 2,
-          "negative_prompts": 1,
-          "neutral_prompts": 0,
-          "avg_confidence": 0.785
-        }
-      },
-      "blended": {
-        "blended_score": 0.37,
-        "blended_sentiment": "positive",
-        "sources": [
-          "headlines",
-          "direct_finbert"
-        ],
-        "weights": {
-          "headlines": 0.34,
-          "direct_finbert": 0.66
-        },
-        "headline_contribution": 0.0,
-        "finbert_contribution": 0.37
-      }
-    },
-    "Tesla": {
       "headline_score": 0.5,
       "headline_sentiment": "neutral",
       "mentions": 1,
       "recent_headlines": [
-        "Tesla: The Elon Premium Is Off The Charts"
+        "Meta, Alphabet and Microsoft Rise While Nvidia Falls After Three AI Chiefs Call For Slowing Down Frontier Models"
       ],
-      "direct_finbert": {
-        "stock": "TSLA",
-        "sentiment": "positive",
-        "score": 0.471,
-        "confidence": 0.831,
-        "source": "direct_finbert_query",
-        "breakdown": {
-          "positive_prompts": 2,
-          "negative_prompts": 1,
-          "neutral_prompts": 0,
-          "avg_confidence": 0.831
-        }
-      },
+      "direct_finbert": null,
       "blended": {
-        "blended_score": 0.477,
+        "blended_score": 0.5,
+        "blended_sentiment": "neutral",
+        "sources": [
+          "headlines_only"
+        ]
+      }
+    },
+    "Tesla": {
+      "headline_score": 1.0,
+      "headline_sentiment": "positive",
+      "mentions": 1,
+      "recent_headlines": [
+        "Elon Musk Makes Strongest Hint Yet About A Tesla-SpaceX Merger"
+      ],
+      "direct_finbert": null,
+      "blended": {
+        "blended_score": 1.0,
         "blended_sentiment": "positive",
         "sources": [
-          "headlines",
-          "direct_finbert"
-        ],
-        "weights": {
-          "headlines": 0.19,
-          "direct_finbert": 0.81
-        },
-        "headline_contribution": 0.097,
-        "finbert_contribution": 0.38
+          "headlines_only"
+        ]
       }
     }
   },
   "direct_finbert_all_stocks": {
-    "GOOGL": {
-      "stock": "GOOGL",
+    "NVDA": {
+      "stock": "NVDA",
       "sentiment": "positive",
-      "score": 0.559,
-      "confidence": 0.785,
+      "score": 0.444,
+      "confidence": 0.849,
       "source": "direct_finbert_query",
       "breakdown": {
         "positive_prompts": 2,
         "negative_prompts": 1,
         "neutral_prompts": 0,
-        "avg_confidence": 0.785
+        "avg_confidence": 0.849
       }
     },
-    "AAPL": {
-      "stock": "AAPL",
+    "AMZN": {
+      "stock": "AMZN",
       "sentiment": "positive",
-      "score": 0.551,
-      "confidence": 0.795,
+      "score": 0.503,
+      "confidence": 0.82,
       "source": "direct_finbert_query",
       "breakdown": {
         "positive_prompts": 2,
         "negative_prompts": 1,
         "neutral_prompts": 0,
-        "avg_confidence": 0.795
+        "avg_confidence": 0.82
       }
     },
     "META": {
@@ -207,17 +276,30 @@
         "avg_confidence": 0.831
       }
     },
-    "TSLA": {
-      "stock": "TSLA",
+    "AAPL": {
+      "stock": "AAPL",
       "sentiment": "positive",
-      "score": 0.471,
-      "confidence": 0.831,
+      "score": 0.551,
+      "confidence": 0.795,
       "source": "direct_finbert_query",
       "breakdown": {
         "positive_prompts": 2,
         "negative_prompts": 1,
         "neutral_prompts": 0,
-        "avg_confidence": 0.831
+        "avg_confidence": 0.795
+      }
+    },
+    "MSFT": {
+      "stock": "MSFT",
+      "sentiment": "positive",
+      "score": 0.567,
+      "confidence": 0.785,
+      "source": "direct_finbert_query",
+      "breakdown": {
+        "positive_prompts": 2,
+        "negative_prompts": 1,
+        "neutral_prompts": 0,
+        "avg_confidence": 0.785
       }
     }
   },

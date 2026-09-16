@@ -45,7 +45,7 @@
             }
             
             .decision-box {
-                background: #85c929;
+                background: #95a5a6;
                 color: white;
                 padding: 30px;
                 border-radius: 10px;
@@ -122,7 +122,7 @@
             .explanation {
                 background: #f8f9fa;
                 padding: 15px;
-                border-left: 4px solid #85c929;
+                border-left: 4px solid #95a5a6;
                 border-radius: 4px;
                 margin: 15px 0;
             }
@@ -177,7 +177,7 @@
             
             .total-pnl {
                 font-weight: bold;
-                color: #85c929;
+                color: #95a5a6;
                 font-size: 18px;
             }
             
@@ -238,15 +238,15 @@
             </div>
             
             <div class="decision-box">
-                <h2>BUY SMALL</h2>
-                <div class="score">86.0/100</div>
-                <div class="confidence">Confidence: HIGH</div>
+                <h2>BUY MICRO</h2>
+                <div class="score">72.3/100</div>
+                <div class="confidence">Confidence: MEDIUM</div>
             </div>
             
             <div class="metrics">
                 <div class="metric-card">
                     <h3>Current Price</h3>
-                    <div class="metric-value">$694.07</div>
+                    <div class="metric-value">$767.58</div>
                 </div>
                 <div class="metric-card">
                     <h3>Trend</h3>
@@ -254,7 +254,7 @@
                 </div>
                 <div class="metric-card">
                     <h3>RSI</h3>
-                    <div class="metric-value">73.8</div>
+                    <div class="metric-value">50.1</div>
                 </div>
                 <div class="metric-card">
                     <h3>Sentiment</h3>
@@ -267,7 +267,7 @@
                 <div class="explanation">
                     <ul>
                         <li>SPY momentum is bullish (EMA + VWAP aligned)</li>
-                        <li>Top holdings are well-aligned and positive</li>
+                        <li>Top holdings showing divergence</li>
                         <li>News sentiment is strongly positive</li>
                         <li>Volatility environment is favorable for options</li>
                     </ul>
@@ -486,15 +486,87 @@
             <td>$3.55</td>
             <td>$-20.00 (-5.3%)</td>
             <td>❌</td>
+        </tr><tr class="trade-negative">
+            <td>2026-01-13-005</td>
+            <td>$700</td>
+            <td>1</td>
+            <td>$0.61</td>
+            <td>$0.04</td>
+            <td>$0.04</td>
+            <td>$-57.00 (-93.4%)</td>
+            <td>❌</td>
+        </tr><tr class="trade-positive">
+            <td>2026-01-14-006</td>
+            <td>$700</td>
+            <td>1</td>
+            <td>$0.27</td>
+            <td>$0.52</td>
+            <td>$0.52</td>
+            <td>$+25.00 (+92.6%)</td>
+            <td>✅</td>
+        </tr><tr class="trade-positive">
+            <td>2026-01-23-007</td>
+            <td>$695</td>
+            <td>5</td>
+            <td>$0.38</td>
+            <td>$0.62</td>
+            <td>$0.62</td>
+            <td>$+120.00 (+63.2%)</td>
+            <td>✅</td>
+        </tr><tr class="trade-positive">
+            <td>2026-01-26-BUY-001</td>
+            <td>$700</td>
+            <td>1</td>
+            <td>$0.27</td>
+            <td>$0.36</td>
+            <td>$0.36</td>
+            <td>$+9.00 (+33.3%)</td>
+            <td>✅</td>
+        </tr><tr class="trade-positive">
+            <td>2026-01-26-009</td>
+            <td>$695</td>
+            <td>1</td>
+            <td>$1.95</td>
+            <td>$2.59</td>
+            <td>$2.59</td>
+            <td>$+64.00 (+32.8%)</td>
+            <td>✅</td>
+        </tr><tr class="trade-negative">
+            <td>2026-01-27-010</td>
+            <td>$709</td>
+            <td>10</td>
+            <td>$0.02</td>
+            <td>$0.02</td>
+            <td>$0.02</td>
+            <td>$+0.00 (+0.0%)</td>
+            <td>❌</td>
+        </tr><tr class="trade-negative">
+            <td>2026-01-28-011</td>
+            <td>$700</td>
+            <td>1</td>
+            <td>$1.50</td>
+            <td>$1.28</td>
+            <td>$1.28</td>
+            <td>$-22.00 (-14.7%)</td>
+            <td>❌</td>
+        </tr><tr class="trade-negative">
+            <td>2026-01-28-012</td>
+            <td>$706</td>
+            <td>10</td>
+            <td>$0.14</td>
+            <td>$0.04</td>
+            <td>$0.04</td>
+            <td>$-100.00 (-71.4%)</td>
+            <td>❌</td>
         </tr>
                     </tbody>
                 </table>
-                <div class="trades-summary"><strong>Portfolio:</strong> 21 contracts, <span class="total-pnl">$+1200.00</span></div>
+                <div class="trades-summary"><strong>Portfolio:</strong> 51 contracts, <span class="total-pnl">$+1239.00</span></div>
             </div>
             
             <div class="footer">
                 <p>💼 Trading System Dashboard | For educational purposes only</p>
-                <p style="margin-top: 10px; font-size: 11px;">Last updated: 2026-01-11 20:25:35</p>
+                <p style="margin-top: 10px; font-size: 11px;">Last updated: 2026-09-08 09:07:08</p>
             </div>
         </div>
         
@@ -507,7 +579,7 @@
                     labels: ['Momentum', 'Sentiment', 'Alignment', 'Event-Driven'],
                     datasets: [{
                         label: 'Score',
-                        data: [1.00, 1.00, 0.88, 0.50],
+                        data: [1.00, 1.00, 0.12, 0.50],
                         backgroundColor: [
                             'rgba(102, 126, 234, 0.8)',
                             'rgba(118, 75, 162, 0.8)',
@@ -554,13 +626,13 @@
                 data: {
                     labels: ['Score', 'Remaining'],
                     datasets: [{
-                        data: [86.0, 14.0],
+                        data: [72.3, 27.700000000000003],
                         backgroundColor: [
-                            '#85c929',
+                            '#95a5a6',
                             'rgba(200, 200, 200, 0.2)'
                         ],
                         borderColor: [
-                            '#85c929',
+                            '#95a5a6',
                             'rgba(200, 200, 200, 0.5)'
                         ],
                         borderWidth: 2

@@ -1,0 +1,96 @@
+===== decision view @ 2026-06-11 08:56:23 MDT =====
+================================================================
+DECISION VIEW
+================================================================
+ENGINE SIGNAL (from final_decision.json)
+  decision : BUY SMALL  (score 81.3, confidence HIGH)
+  snapshot : SPY $694.07 at 14:13  (trend BULLISH)
+  intent   : buy 1 SPY limit @ $687.28  (TP $697.06, stop $664.29)
+----------------------------------------------------------------
+[deploy] read agent already hosted: agent_0168hp2GEqSPTGP4iuNXRhNW
+LIVE BRIEFING (read-only agent agent_0168hp2GEqSPTGP4iuNXRhNW)
+  watch live: https://platform.claude.com/workspaces/default/sessions/sesn_017HRVaDTpxeKdPBYgrk6PiP
+
+Traceback (most recent call last):
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpx/_transports/default.py", line 127, in __iter__
+    for part in self._httpcore_stream:
+                ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpcore/_sync/connection_pool.py", line 407, in __iter__
+    raise exc from None
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpcore/_sync/connection_pool.py", line 403, in __iter__
+    for part in self._stream:
+                ^^^^^^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpcore/_sync/http11.py", line 342, in __iter__
+    raise exc
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpcore/_sync/http11.py", line 334, in __iter__
+    for chunk in self._connection._receive_response_body(**kwargs):
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpcore/_sync/http11.py", line 203, in _receive_response_body
+    event = self._receive_event(timeout=timeout)
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpcore/_sync/http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+        self.READ_NUM_BYTES, timeout=timeout
+    )
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpcore/_backends/sync.py", line 126, in read
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 54] Connection reset by peer
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/decision_view.py", line 132, in <module>
+    main()
+    ~~~~^^
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/decision_view.py", line 118, in main
+    drive_session_with_approval(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        session.id,
+        ^^^^^^^^^^^
+    ...<2 lines>...
+        verbose=False,
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/lab.py", line 260, in drive_session_with_approval
+    for event in stream:
+                 ^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/anthropic/_streaming.py", line 71, in __iter__
+    for item in self._iterator:
+                ^^^^^^^^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/anthropic/_streaming.py", line 84, in __stream__
+    for sse in iterator:
+               ^^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/anthropic/_streaming.py", line 75, in _iter_events
+    yield from self._decoder.iter_bytes(self.response.iter_bytes())
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/anthropic/_streaming.py", line 392, in iter_bytes
+    for chunk in self._iter_chunks(iterator):
+                 ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/anthropic/_streaming.py", line 403, in _iter_chunks
+    for chunk in iterator:
+                 ^^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpx/_models.py", line 897, in iter_bytes
+    for raw_bytes in self.iter_raw():
+                     ~~~~~~~~~~~~~^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpx/_models.py", line 951, in iter_raw
+    for raw_stream_bytes in self.stream:
+                            ^^^^^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpx/_client.py", line 153, in __iter__
+    for chunk in self._stream:
+                 ^^^^^^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpx/_transports/default.py", line 126, in __iter__
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 54] Connection reset by peer

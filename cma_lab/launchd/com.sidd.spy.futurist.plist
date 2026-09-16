@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.sidd.spy.futurist</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/siddharthshankar/workspace/spy/cma_lab/run_futurist.sh</string>
+    </array>
+
+    <!-- Monthly: day 1 at 17:30 LOCAL, after market close. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Day</key><integer>1</integer>
+        <key>Hour</key><integer>17</integer>
+        <key>Minute</key><integer>30</integer>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/siddharthshankar/workspace/spy/cma_lab/briefings/futurist.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/siddharthshankar/workspace/spy/cma_lab/briefings/futurist.err.log</string>
+</dict>
+</plist>

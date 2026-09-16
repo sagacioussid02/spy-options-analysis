@@ -1,29 +1,35 @@
 {
-  "timestamp": "20:25",
-  "final_score": 86.0,
-  "decision": "BUY SMALL",
-  "confidence": "HIGH",
+  "timestamp": "09:06",
+  "final_score": 72.3,
+  "decision": "BUY MICRO",
+  "confidence": "MEDIUM",
   "component_scores": {
     "momentum": 1.0,
-    "alignment": 0.88,
+    "alignment": 0.12,
     "event_driven": 0.5,
     "sentiment_overall": 1.0,
     "volatility_penalty": 0.0,
     "holdings_analysis": 0.64
   },
   "market_conditions": {
-    "spy_price": 694.07,
+    "spy_price": 767.58,
     "trend": "BULLISH",
-    "rsi": 73.8,
-    "ema_9": 688.86,
-    "ema_21": 685.47,
-    "vwap": 676.63,
-    "vix": 14.5
+    "rsi": 50.1,
+    "ema_9": 768.03,
+    "ema_21": 766.28,
+    "vwap": 755.73,
+    "vix": 15.4
   },
   "stock_sentiment_analysis": {
+    "NVIDIA": {
+      "score": 0.5,
+      "mentions": 2,
+      "positive": 0,
+      "negative": 0
+    },
     "Apple": {
       "score": 0.5,
-      "mentions": 1,
+      "mentions": 2,
       "positive": 0,
       "negative": 0
     },
@@ -33,29 +39,29 @@
       "positive": 0,
       "negative": 0
     },
-    "Google": {
+    "Tesla": {
       "score": 0.5,
       "mentions": 2,
       "positive": 0,
       "negative": 0
     },
-    "Tesla": {
+    "Berkshire": {
       "score": 0.5,
-      "mentions": 1,
+      "mentions": 2,
       "positive": 0,
       "negative": 0
     }
   },
   "entry_strategy": {
-    "conservative_entry": 690.41,
-    "current_entry": 694.07,
-    "risky_entry": 694.08,
-    "recommended_entry": 689.18
+    "conservative_entry": 766.73,
+    "current_entry": 767.58,
+    "risky_entry": 768.96,
+    "recommended_entry": 766.73
   },
   "position_management": {
-    "size_recommendation": "MEDIUM-LARGE (20-25%)",
-    "volatility_adjusted": "Low volatility - comfortable with larger position",
-    "risk_per_trade": 70968.3
+    "size_recommendation": "MEDIUM (15-20%)",
+    "volatility_adjusted": "Moderate volatility - balanced approach",
+    "risk_per_trade": 241377.36
   },
   "options_greeks": {
     "delta": 0.65,
@@ -72,10 +78,10 @@
     "impact_summary": "Mixed signals"
   },
   "risk_reward": {
-    "entry_price": 694.07,
-    "take_profit_target": 695.31,
-    "stop_loss_level": 668.5,
-    "risk_reward_ratio": "1:0.3"
+    "entry_price": 767.58,
+    "take_profit_target": 769.7,
+    "stop_loss_level": 743.01,
+    "risk_reward_ratio": "1:0.13"
   },
   "time_decay": {
     "days_to_expiry": 7,
@@ -83,19 +89,17 @@
     "theta_warning": "Moderate"
   },
   "bullish_factors": [
-    "Bullish trend (EMA-9: 688.86)",
+    "Bullish trend (EMA-9: 768.03)",
     "EMA-9 above EMA-21 (bullish cross)",
     "Price above VWAP (bullish)",
-    "Top holdings positive (7/8 green)"
+    "RSI in sweet spot: 50.1 (not overbought)"
   ],
-  "bearish_factors": [
-    "RSI overbought: 73.8 (pullback risk)"
-  ],
+  "bearish_factors": [],
   "confidence_score": {
     "value": 65,
     "drivers": [
       "\u2713 Momentum gate passed",
-      "\u2713 Strong alignment: 0.88"
+      "\u2717 Weak alignment: 0.12"
     ]
   },
   "upcoming_catalysts": {
@@ -103,18 +107,19 @@
     "next_steps": "1. Monitor NVIDIA earnings (Jan 29), 2. Track Fed decisions, 3. Watch AI sector news"
   },
   "recommendation": {
-    "action": "BUY SMALL",
+    "action": "BUY MICRO",
     "buy_decision": {
-      "decision": "WAIT",
-      "score": 50,
+      "decision": "BUY",
+      "score": 75,
       "reasons": [
         "Price above VWAP - bullish",
-        "Trend is bullish"
+        "Trend is bullish",
+        "RSI in sweet spot (50-70) - not overbought"
       ]
     },
     "explanation": [
       "SPY momentum is bullish (EMA + VWAP aligned)",
-      "Top holdings are well-aligned and positive",
+      "Top holdings showing divergence",
       "News sentiment is strongly positive",
       "Volatility environment is favorable for options"
     ],

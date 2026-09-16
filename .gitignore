@@ -1,5 +1,14 @@
 .env
 __pycache__/
+cma_lab/journal.json
+cma_lab/shadow.json
+cma_lab/debates/
+cma_lab/beliefs/
+cma_lab/playbook.json
+cma_lab/predictions.json
+cma_lab/theses/
+cma_lab/risk_overrides.json
+cma_lab/cma_state.json
 - .DS_Store
 - *.pyc
 - spy_decision_engine/data/trades.json (optional - contains trade history)
