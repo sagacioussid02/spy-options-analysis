@@ -9,6 +9,8 @@ cma_lab/predictions.json
 cma_lab/theses/
 cma_lab/risk_overrides.json
 cma_lab/cma_state.json
+cma_lab/graph_state.db
+cma_lab/graph_threads.json
 - .DS_Store
 - *.pyc
 - spy_decision_engine/data/trades.json (optional - contains trade history)
