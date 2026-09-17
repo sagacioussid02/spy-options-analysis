@@ -10,6 +10,15 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 CACHE_DIR = os.path.join(DATA_DIR, "cache")
 RAW_DATA_DIR = os.path.join(DATA_DIR, "raw")
 
+# The ticker this run analyzes. One at a time — set via env (cma_lab passes
+# this through when it launches the engine; a manual run exports it or edits
+# the default here).
+TICKER = os.environ.get("TICKER", "SPY")
+
+# Tickers treated as an INDEX: engines that reason about index composition
+# (holdings weighting, top-contributor alignment) only run for these.
+INDEX_TICKERS = {"SPY"}
+
 # Top SPY contributors to track
 TOP_STOCKS = ["NVDA", "AAPL", "MSFT", "AMZN", "META", "GOOGL", "TSLA", "BRK-B"]
 

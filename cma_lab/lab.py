@@ -48,6 +48,14 @@ def lab_env(key: str, default: Optional[str] = None) -> Optional[str]:
     return _dotenv().get(key) or os.environ.get(key) or default
 
 
+# The single active ticker — one at a time. Set TICKER=<SYM> in cma_lab/.env
+# (or export it) to trade/analyze something other than SPY. Every agent
+# system prompt and risk_gate's symbol_whitelist read this same value, and
+# decision_view.py passes it through when it launches the engine, so the
+# engine and cma_lab never disagree about which ticker is active.
+TICKER = lab_env("TICKER", "SPY")
+
+
 def _update_env_value(key: str, value: str) -> None:
     env_file = Path(__file__).parent / ".env"
     lines = env_file.read_text().splitlines() if env_file.exists() else []

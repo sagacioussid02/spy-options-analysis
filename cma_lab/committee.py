@@ -49,6 +49,7 @@ from futurist import theses_index_text
 from playbook import Playbook
 from lab import (
     ROBINHOOD_MCP_URL,
+    TICKER,
     client,
     console_url,
     ensure_robinhood_credential,
@@ -168,10 +169,10 @@ def h_regret(_i) -> str:
 
 READ_CUSTOM_TOOLS = [
     {"type": "custom", "name": "get_engine_analysis",
-     "description": "The SPY engine's latest full analysis (final_decision.json).",
+     "description": f"The {TICKER} engine's latest full analysis (final_decision.json).",
      "input_schema": {"type": "object", "properties": {}, "additionalProperties": False}},
     {"type": "custom", "name": "get_engine_components",
-     "description": "The engine's INDIVIDUAL component scores and raw market "
+     "description": f"The {TICKER} engine's INDIVIDUAL component scores and raw market "
                     "conditions, without the blended verdict. Reason from these, "
                     "not from a single headline number.",
      "input_schema": {"type": "object", "properties": {}, "additionalProperties": False}},
@@ -427,7 +428,7 @@ PM_TOOLS = [_read_toolset(), _web_toolset(), *READ_CUSTOM_TOOLS,
            PROPOSE_TOOL, PASS_TOOL, REGISTER_HYPOTHESIS_TOOL, LOG_PREDICTION_TOOL]
 
 BULL_SYSTEM = (
-    "You are the Bull analyst on a SPY trading desk committee. Build the "
+    f"You are the Bull analyst on a {TICKER} trading desk committee. Build the "
     "strongest HONEST case FOR a trade. The engine's blended verdict is "
     "EVIDENCE you weigh, never a checklist you must satisfy — you may build a "
     "case even where it's neutral or bearish, as long as you say why, using "
@@ -444,7 +445,7 @@ BULL_SYSTEM = (
 )
 
 BEAR_SYSTEM = (
-    "You are the Bear analyst on a SPY trading desk committee. You will be "
+    f"You are the Bear analyst on a {TICKER} trading desk committee. You will be "
     "given the Bull's full case in your first message. Attack its strongest "
     "points with evidence (engine components, journal base rates, regret "
     "stats, web_search) — cite specifics, don't just express skepticism. If "
@@ -457,7 +458,7 @@ BEAR_SYSTEM = (
 )
 
 PM_SYSTEM = (
-    "You are the Portfolio Manager. You will be given the Bull case, the Bear "
+    f"You are the Portfolio Manager for {TICKER}. You will be given the Bull case, the Bear "
     "case, this session's desk-activity status, and regret stats (whether "
     "recent passes would have profited) in your first message. Decide: "
     "propose_trade OR pass_with_reason. The engine score and either persona's "
@@ -478,7 +479,7 @@ PM_SYSTEM = (
     "persona) AND a debate track record (how often bull_right vs bear_right "
     "graded historically) — weight bull vs bear by both under disagreement, "
     "not by who sounds more confident. You'll also see the Futurist's theses "
-    "index; a strengthening long-horizon view can support a same-day SPY case. "
+    f"index; a strengthening long-horizon view can support a same-day {TICKER} case. "
     "Log at least one falsifiable prediction with "
     "log_prediction before you finish, win or pass."
 )
@@ -507,17 +508,17 @@ def _deploy(name: str, model: str, system: str, tools: list,
 
 
 def deploy_bull() -> str:
-    return _deploy("SPY Committee — Bull", MODEL, BULL_SYSTEM, BULL_TOOLS,
+    return _deploy(f"{TICKER} Committee — Bull", MODEL, BULL_SYSTEM, BULL_TOOLS,
                    "bull_agent_id", "bull_agent_spec", 1)
 
 
 def deploy_bear() -> str:
-    return _deploy("SPY Committee — Bear", MODEL, BEAR_SYSTEM, BEAR_TOOLS,
+    return _deploy(f"{TICKER} Committee — Bear", MODEL, BEAR_SYSTEM, BEAR_TOOLS,
                    "bear_agent_id", "bear_agent_spec", 1)
 
 
 def deploy_pm() -> str:
-    return _deploy("SPY Committee — PM", MODEL, PM_SYSTEM, PM_TOOLS,
+    return _deploy(f"{TICKER} Committee — PM", MODEL, PM_SYSTEM, PM_TOOLS,
                    "pm_agent_id", "pm_agent_spec", 1)
 
 
@@ -550,7 +551,7 @@ def make_h_pass(debate_id: str, bull_case: dict):
     def _h(inp: dict) -> str:
         reason = str(inp.get("reason", "")).strip() or "no reason given"
         trade = (bull_case or {}).get("suggested_trade") or {}
-        symbol = str(trade.get("symbol") or "SPY")
+        symbol = str(trade.get("symbol") or TICKER)
         side = str(trade.get("side") or "buy")
         exit_plan = trade.get("exit_plan") or {}
         quote = _quote_for(symbol)
@@ -644,7 +645,7 @@ def run_once() -> dict:
 
     print("\n--- BULL ---")
     bull_kickoff = (
-        "Open today's SPY committee debate as the Bull. Your accumulated beliefs "
+        f"Open today's {TICKER} committee debate as the Bull. Your accumulated beliefs "
         f"(weigh them, don't just recite):\n{_read_beliefs('bull')}\n\n"
         f"The current hypothesis playbook (trial/active/retired ideas the desk "
         f"is tracking):\n{playbook_view}\n\n"

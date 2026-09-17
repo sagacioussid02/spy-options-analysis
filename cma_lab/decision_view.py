@@ -17,12 +17,14 @@ Run:
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 from chunk6_read_agent import deploy_agent
 from lab import (
+    TICKER,
     client,
     console_url,
     drive_session_with_approval,
@@ -44,6 +46,7 @@ def maybe_run_engine() -> None:
             [sys.executable, "main.py"],
             cwd=str(REPO_ROOT / "spy_decision_engine"),
             check=True,
+            env={**os.environ, "TICKER": TICKER},
         )
     except subprocess.CalledProcessError as e:
         print(f"[engine] run failed ({e}); falling back to existing final_decision.json")

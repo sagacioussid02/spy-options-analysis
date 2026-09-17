@@ -19,6 +19,8 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+from lab import TICKER
+
 # spy_decision_engine/reports/final_decision.json, relative to repo root.
 DEFAULT_DECISION_PATH = (
     Path(__file__).resolve().parent.parent
@@ -86,7 +88,7 @@ def build_equity_intent(decision: dict, *, max_shares: int = 2) -> TradeIntent:
     return TradeIntent(
         intent_id="ti_" + uuid.uuid4().hex[:10],
         strategy_name="spy_decision_engine",
-        underlying="SPY",
+        underlying=TICKER,
         asset_type="equity",
         side=side,
         quantity=quantity,

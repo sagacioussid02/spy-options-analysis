@@ -20,6 +20,12 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from lab import lab_env
+
+# The single active ticker (see lab.py) — same env/`.env` lookup lab.py's
+# own TICKER constant uses, so risk_gate and every agent agree on it.
+TICKER = lab_env("TICKER", "SPY")
+
 # Tool-name classification (covers the rolling-out option tools too).
 PLACE_TOOLS = {"place_equity_order", "place_option_order"}
 CANCEL_TOOLS = {"cancel_equity_order", "cancel_option_order"}
@@ -31,7 +37,7 @@ class RiskConfig:
     """Hard limits. Tune per your risk tolerance; these are conservative."""
     kill_switch: bool = False              # True => block ALL order activity
     equity_only: bool = True               # True => block ALL option order tools (stocks only)
-    symbol_whitelist: tuple = ("SPY",)     # only these underlyings may be traded
+    symbol_whitelist: tuple = (TICKER,)    # only these underlyings may be traded
     allowed_sides: tuple = ("buy",)        # long-only (Robinhood agentic = long only anyway)
     max_quantity: float = 5                # max contracts (options) or shares (equity) per order
     max_notional_per_order: float = 1500.0 # $ cap when price is known

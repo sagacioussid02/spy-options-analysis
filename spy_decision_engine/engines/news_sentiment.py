@@ -66,7 +66,7 @@ class NewsSentimentEngine:
         headlines = get_news_headlines(ticker=context.ticker)
         
         # If analyzing specific ticker, only track that ticker
-        if context.ticker != "SPY":
+        if context.ticker not in config.INDEX_TICKERS:
             # Map ticker to company name
             company_name = self.ticker_to_company.get(context.ticker, context.ticker)
             stocks_to_analyze = {company_name: self.stocks_to_track.get(company_name, [context.ticker.lower()])}

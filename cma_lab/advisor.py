@@ -30,6 +30,7 @@ from chunk6_read_agent import READ_TOOLS
 from execution import ACCOUNT, J, LIVE_EXECUTION, LIVE_MAX_SHARES, execute_approved, h_propose
 from lab import (
     ROBINHOOD_MCP_URL,
+    TICKER,
     account_standing,
     client,
     console_url,
@@ -52,7 +53,7 @@ STRATEGIES = "trend_follow, pullback_buy, breakout, stand_aside"
 
 CUSTOM_TOOLS = [
     {"type": "custom", "name": "get_engine_analysis",
-     "description": "The SPY engine's latest analysis (final_decision.json).",
+     "description": f"The {TICKER} engine's latest analysis (final_decision.json).",
      "input_schema": {"type": "object", "properties": {}, "additionalProperties": False}},
     {"type": "custom", "name": "get_journal_summary",
      "description": "Your track record: win-rate and P&L by strategy, regime, and "
@@ -90,7 +91,7 @@ CUSTOM_TOOLS = [
              "regime": {"type": "string", "description": "e.g. bullish_trend, chop, high_vol"},
              "strategy": {"type": "string", "description": f"one of: {STRATEGIES}"},
              "side": {"type": "string", "description": "buy"},
-             "symbol": {"type": "string", "description": "SPY"},
+             "symbol": {"type": "string", "description": TICKER},
              "quantity": {"type": "number", "description": "shares"},
              "entry_style": {"type": "string", "description": "limit or market"},
              "limit_price": {"type": "number", "description": "if limit"},
@@ -127,7 +128,7 @@ TOOLS = [
 MCP_SERVERS = [{"type": "url", "name": "robinhood", "url": ROBINHOOD_MCP_URL}]
 
 SYSTEM = (
-    "You are the user's SPY trading advisor — a sharp, honest desk strategist, not "
+    f"You are the user's {TICKER} trading advisor — a sharp, honest desk strategist, not "
     "a rules engine. You reason about the engine's signals, live account + market, "
     "current sentiment (web_search), the user's own track record "
     "(get_journal_summary), AND the distilled lessons from past trades "
@@ -324,7 +325,7 @@ def deploy_advisor() -> str:
         else:
             print(f"[deploy] advisor already hosted: {agent_id}")
         return agent_id
-    agent = client().beta.agents.create(name="SPY Trading Advisor", model=MODEL,
+    agent = client().beta.agents.create(name=f"{TICKER} Trading Advisor", model=MODEL,
                                         system=SYSTEM, mcp_servers=MCP_SERVERS, tools=TOOLS)
     state[AGENT_ID_KEY] = agent.id; state[AGENT_SPEC_KEY] = SPEC_VERSION; save_state(state)
     print(f"[deploy] hosted new advisor on CMA: {agent.id} (v{agent.version})")
@@ -346,7 +347,7 @@ def main() -> None:
         mode = f"LIVE — REAL ORDERS, max {LIVE_MAX_SHARES} sh, acct {acct}, typed-confirm each"
     else:
         mode = "SIMULATED (no real orders; set SPY_LIVE=1 to arm live)"
-    print(f"\nSPY Advisor Desk. execution = {mode}.\n  Session {session.id}")
+    print(f"\n{TICKER} Advisor Desk. execution = {mode}.\n  Session {session.id}")
     print(f"Watch live: {console_url(session.id)}")
     print_help(); print()
 

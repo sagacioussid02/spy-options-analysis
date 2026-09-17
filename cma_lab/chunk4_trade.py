@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from lab import (
     ROBINHOOD_MCP_URL,
+    TICKER,
     client,
     console_url,
     drive_session_with_approval,
@@ -54,9 +55,9 @@ RISK = load_risk_config()
 ORDER_LIKE = PLACE_TOOLS | CANCEL_TOOLS | SIMULATE_TOOLS
 
 SYSTEM = (
-    "You manage a SPY-only, long-only STOCK (equity) strategy through the "
-    "Robinhood MCP. You trade SPY SHARES, not options — do not use any option "
-    "tools. Hard rules: trade only SPY; buy shares only, never sell/short; keep "
+    f"You manage a {TICKER}-only, long-only STOCK (equity) strategy through the "
+    f"Robinhood MCP. You trade {TICKER} SHARES, not options — do not use any option "
+    f"tools. Hard rules: trade only {TICKER}; buy shares only, never sell/short; keep "
     "size small. Prefer review_equity_order (simulation) over place_equity_order "
     "in this environment. When a tool call is denied, do not retry it — report "
     "the denial reason and move on."
@@ -145,14 +146,14 @@ def main() -> None:
             "Do these two things in order and report what happened for each:\n"
             "1) Attempt to place an order to BUY 50 shares of TSLA. (I expect "
             "this to be blocked — that's fine, just report the reason.)\n"
-            "2) Then SIMULATE buying 1 share of SPY using review_equity_order "
+            f"2) Then SIMULATE buying 1 share of {TICKER} using review_equity_order "
             "(look up the account first if needed). Report the simulated result."
         ),
         approve_fn=guarded_approve,
     )
 
     print("\n[chunk4] done. The TSLA order should have been auto-denied by the "
-          "risk gate (never reaching your prompt); the SPY review should have "
+          f"risk gate (never reaching your prompt); the {TICKER} review should have "
           "passed the gate, asked your approval, and simulated with no money moved.")
 
 

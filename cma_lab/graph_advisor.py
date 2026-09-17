@@ -54,6 +54,7 @@ from advisor import (
 )
 from execution import J
 from lab import (
+    TICKER,
     client,
     console_url,
     ensure_robinhood_credential,
@@ -285,7 +286,7 @@ def main() -> None:
     if len(sys.argv) > 1 and sys.argv[1] == "deploy":
         print("[graph_advisor] deploy-only."); return
 
-    print("\nSPY Graph Advisor (LangGraph V1). state db: "
+    print(f"\n{TICKER} Graph Advisor (LangGraph V1). state db: "
           f"{DB_PATH.name}\n")
     print_help(); print()
 

@@ -23,6 +23,7 @@ from engines.options_whatif import OptionsWhatIfEngine
 from engines.final_decision import FinalDecisionEngine
 from database import DecisionDatabase
 from utils.dashboard_updater import DashboardUpdater
+import config
 
 
 def main():
@@ -38,7 +39,7 @@ def main():
     db = DecisionDatabase()
     
     # Initialize shared context
-    context = MarketContext()
+    context = MarketContext(config.TICKER)
     
     try:
         # Stage 1: Always run these engines

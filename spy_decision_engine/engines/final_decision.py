@@ -48,7 +48,8 @@ class FinalDecisionEngine:
             overall_sentiment,
             volatility_penalty,
             event_driven_score,
-            holdings_score
+            holdings_score,
+            is_index_ticker=(context.ticker in config.INDEX_TICKERS)
         )
         
         # Convert score to decision

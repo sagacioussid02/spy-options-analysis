@@ -59,7 +59,7 @@ from committee import (
 )
 from execution import J
 from futurist import theses_index_text
-from lab import ensure_robinhood_credential, get_or_create_environment, get_or_create_vault
+from lab import TICKER, ensure_robinhood_credential, get_or_create_environment, get_or_create_vault
 from playbook import Playbook
 from shadow import ShadowStore
 
@@ -109,7 +109,7 @@ def bull(state: CommitteeState) -> dict:
     ctx = state["context"]
     print("\n--- BULL ---")
     kickoff = (
-        "Open today's SPY committee debate as the Bull. Your accumulated beliefs "
+        f"Open today's {TICKER} committee debate as the Bull. Your accumulated beliefs "
         f"(weigh them, don't just recite):\n{_read_beliefs('bull')}\n\n"
         f"The current hypothesis playbook (trial/active/retired ideas the desk "
         f"is tracking):\n{ctx['playbook_view']}\n\n"

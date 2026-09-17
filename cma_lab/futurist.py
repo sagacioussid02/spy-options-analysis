@@ -30,6 +30,7 @@ from pathlib import Path
 
 from lab import (
     ROBINHOOD_MCP_URL,
+    TICKER,
     client,
     console_url,
     ensure_robinhood_credential,
@@ -148,8 +149,8 @@ SYSTEM = (
     "a concrete view, winners/losers, catalysts/timeline, and what would change "
     "your mind — then log_prediction 2-4 times for it (category industry or "
     "stock), each a specific, falsifiable, dated claim, not a vague lean.\n"
-    "Trading stays SPY-only regardless of what you research — you're building "
-    "the desk's research capability and its SPY macro view, not proposing "
+    f"Trading stays {TICKER}-only regardless of what you research — you're building "
+    f"the desk's research capability and its {TICKER} macro view, not proposing "
     "trades in these names."
 )
 
@@ -273,7 +274,7 @@ def deploy_futurist() -> str:
         else:
             print(f"[deploy] futurist already hosted: {agent_id}")
         return agent_id
-    agent = client().beta.agents.create(name="SPY Desk Futurist", model=MODEL,
+    agent = client().beta.agents.create(name=f"{TICKER} Desk Futurist", model=MODEL,
                                         system=SYSTEM, mcp_servers=MCP_SERVERS, tools=TOOLS)
     state[AGENT_ID_KEY] = agent.id
     state[AGENT_SPEC_KEY] = SPEC_VERSION

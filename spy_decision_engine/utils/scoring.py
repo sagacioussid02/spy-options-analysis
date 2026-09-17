@@ -10,35 +10,51 @@ def calculate_final_score(
     sentiment_score: float,
     volatility_penalty: float,
     event_driven_score: float = 0.5,
-    holdings_score: float = 0.5
+    holdings_score: float = 0.5,
+    is_index_ticker: bool = True
 ) -> float:
     """
     Calculate final decision score using weighted formula.
-    
-    Formula:
-    final_score = 0.28 * momentum + 0.18 * alignment + 0.18 * event_driven + 
+
+    Index formula (is_index_ticker=True — alignment/event_driven/holdings
+    are all derived from index composition, e.g. SPY's top holdings):
+    final_score = 0.28 * momentum + 0.18 * alignment + 0.18 * event_driven +
                   0.14 * sentiment + 0.14 * (1 - volatility_penalty) + 0.08 * holdings
-    
+
+    Single-stock formula (is_index_ticker=False — alignment/event_driven/
+    holdings don't apply to an individual stock, so they're dropped and the
+    remaining three weights (momentum:sentiment:volatility = 2:1:1) are
+    renormalized to sum to 1):
+    final_score = 0.5 * momentum + 0.25 * sentiment + 0.25 * (1 - volatility_penalty)
+
     Args:
-        momentum_score: SPY momentum score (0-1)
-        alignment_score: Market alignment score (0-1)
+        momentum_score: Momentum score (0-1)
+        alignment_score: Market alignment score (0-1) — index-only
         sentiment_score: News sentiment score (0-1)
         volatility_penalty: Volatility penalty (0-1, subtracted from score)
-        event_driven_score: Event-driven bias score (0-1)
-        holdings_score: Top 5 holdings aggregate score (0-1)
-    
+        event_driven_score: Event-driven bias score (0-1) — index-only
+        holdings_score: Top holdings aggregate score (0-1) — index-only
+        is_index_ticker: Whether the analyzed ticker is an index (e.g. SPY)
+
     Returns:
         Final score (0-100 scale)
     """
-    weighted_score = (
-        0.28 * momentum_score +
-        0.18 * alignment_score +
-        0.18 * event_driven_score +
-        0.14 * sentiment_score +
-        0.14 * (1 - volatility_penalty) +
-        0.08 * holdings_score
-    )
-    
+    if is_index_ticker:
+        weighted_score = (
+            0.28 * momentum_score +
+            0.18 * alignment_score +
+            0.18 * event_driven_score +
+            0.14 * sentiment_score +
+            0.14 * (1 - volatility_penalty) +
+            0.08 * holdings_score
+        )
+    else:
+        weighted_score = (
+            0.5 * momentum_score +
+            0.25 * sentiment_score +
+            0.25 * (1 - volatility_penalty)
+        )
+
     # Convert to 0-100 scale
     return max(0, min(100, weighted_score * 100))
 

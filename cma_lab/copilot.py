@@ -29,6 +29,7 @@ from pathlib import Path
 from chunk6_read_agent import READ_TOOLS
 from lab import (
     ROBINHOOD_MCP_URL,
+    TICKER,
     client,
     console_url,
     ensure_robinhood_credential,
@@ -59,7 +60,7 @@ CUSTOM_TOOLS = [
     {
         "type": "custom",
         "name": "get_engine_analysis",
-        "description": "Return the SPY decision engine's latest analysis "
+        "description": f"Return the {TICKER} decision engine's latest analysis "
                        "(final_decision.json): scores, signals, sentiment, "
                        "bullish/bearish factors, risk/reward.",
         "input_schema": {"type": "object", "properties": {}, "additionalProperties": False},
@@ -123,7 +124,7 @@ TOOLS = [
 MCP_SERVERS = [{"type": "url", "name": "robinhood", "url": ROBINHOOD_MCP_URL}]
 
 SYSTEM = (
-    "You are the user's SPY trading copilot and thought-partner. You help them "
+    f"You are the user's {TICKER} trading copilot and thought-partner. You help them "
     "reason about their own decision engine's analysis, their trades, market "
     "sentiment, and logical next steps. You are ADVISORY and READ-ONLY: you have "
     "no order tools and must never place, modify, or cancel a trade, nor imply "
@@ -188,7 +189,7 @@ def h_set_risk_parameter(inp: dict) -> str:
         save_overrides(ov)
         cfg = load_risk_config()
         return (f"Done: risk appetite = {v}. Now max {cfg.max_quantity:g} shares / "
-                f"${cfg.max_notional_per_order:g} per order. (equity-only, SPY-only, "
+                f"${cfg.max_notional_per_order:g} per order. (equity-only, {TICKER}-only, "
                 f"long-only stay locked.)")
 
     if param in ("max_shares", "max_quantity", "size"):
@@ -244,7 +245,7 @@ def deploy_copilot() -> str:
         return agent_id
 
     agent = client().beta.agents.create(
-        name="SPY Trading Copilot", model=MODEL, system=SYSTEM,
+        name=f"{TICKER} Trading Copilot", model=MODEL, system=SYSTEM,
         mcp_servers=MCP_SERVERS, tools=TOOLS,
     )
     state[AGENT_ID_KEY] = agent.id
@@ -315,7 +316,7 @@ def main() -> None:
         agent=agent_id, environment_id=env_id, vault_ids=[vault_id], title="copilot chat",
     )
 
-    print(f"\nSPY Copilot ready. Session {session.id}")
+    print(f"\n{TICKER} Copilot ready. Session {session.id}")
     print(f"Watch live: {console_url(session.id)}")
     print("Ask about engine analysis, your trades, sentiment, next steps, or say "
           "things like 'make me more aggressive' / 'pause trading'.")

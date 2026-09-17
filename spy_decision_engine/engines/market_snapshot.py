@@ -24,6 +24,25 @@ class MarketSnapshotEngine:
         Args:
             context: Shared market context to write results to
         """
+        # Alignment (how many top-index contributors are green) is an INDEX
+        # concept — get_market_data() always fetches the SPY-basket
+        # regardless of ticker, so for a single non-index stock this would
+        # silently score against the wrong basket. Skip it and stay neutral.
+        if context.ticker not in config.INDEX_TICKERS:
+            output = {
+                "timestamp": "",
+                "stocks": {},
+                "green_count": 0,
+                "red_count": 0,
+                "alignment_score": 0.5,
+                "skipped": f"{context.ticker} is not an index ticker — "
+                           f"alignment only applies to {sorted(config.INDEX_TICKERS)}",
+            }
+            context.market_snapshot = output
+            self._write_report(output)
+            print(f"  (skipped: alignment is index-only, {context.ticker} is not an index)")
+            return
+
         # Fetch market data
         market_data = get_market_data()
         

@@ -9,6 +9,8 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import yfinance as yf
 
+import config
+
 try:
     from utils.finbert_sentiment import get_analyzer
     FINBERT_AVAILABLE = True
@@ -359,7 +361,22 @@ class EventDrivenEngine:
         """
         print("\n📰 EVENT-DRIVEN ENGINE")
         print("-" * 70)
-        
+
+        # IMPACT_WEIGHTS is an index-composition concept (how much each
+        # stock moves SPY) — doesn't apply to a single non-index ticker.
+        if getattr(context, "ticker", "SPY") not in config.INDEX_TICKERS:
+            print(f"  (skipped: event impact weighting is index-only, "
+                  f"{context.ticker} is not an index)")
+            context.event_driven = {
+                "events_detected": [], "reactions": [], "net_event_bias": "NEUTRAL",
+                "confidence": "LOW", "score": 0.5,
+                "skipped": f"{context.ticker} is not an index ticker",
+            }
+            report_file = Path(__file__).parent.parent / 'reports' / 'event_driven.json'
+            with open(report_file, 'w') as f:
+                json.dump(context.event_driven, f, indent=2)
+            return context
+
         # Get sentiment data
         sentiment_file = Path(__file__).parent.parent / 'reports' / 'sentiment.json'
         

@@ -23,6 +23,7 @@ import sys
 
 from lab import (
     ROBINHOOD_MCP_URL,
+    TICKER,
     client,
     console_url,
     drive_session_with_approval,
@@ -63,7 +64,7 @@ TOOLS = [{
 MCP_SERVERS = [{"type": "url", "name": "robinhood", "url": ROBINHOOD_MCP_URL}]
 
 SYSTEM = (
-    "You are a READ-ONLY decision-support analyst for a SPY trading workflow. "
+    f"You are a READ-ONLY decision-support analyst for a {TICKER} trading workflow. "
     "You have Robinhood read tools (accounts, portfolio, positions, orders, "
     "quotes, tradability, search). Your job is to gather live account + market "
     "context and present a SHORT, plain-language briefing to a human who will "
@@ -99,7 +100,7 @@ def deploy_agent() -> str:
         return agent_id
 
     agent = client().beta.agents.create(
-        name="SPY Read/Decision-Support Agent",
+        name=f"{TICKER} Read/Decision-Support Agent",
         model=MODEL,
         system=SYSTEM,
         mcp_servers=MCP_SERVERS,
@@ -135,10 +136,10 @@ def run_briefing(agent_id: str) -> None:
     drive_session_with_approval(
         session.id,
         kickoff_text=(
-            "Give me a read-only account + market briefing for SPY:\n"
+            f"Give me a read-only account + market briefing for {TICKER}:\n"
             "1) List my accounts and identify the agentic one.\n"
-            "2) Show buying power and any current SPY position (qty, avg cost).\n"
-            "3) Show the current SPY quote and whether SPY is tradable right now.\n"
+            f"2) Show buying power and any current {TICKER} position (qty, avg cost).\n"
+            f"3) Show the current {TICKER} quote and whether {TICKER} is tradable right now.\n"
             "4) Note how many equity orders I've placed recently.\n"
             "Summarize in a short briefing for a human decision-maker. Do not trade."
         ),

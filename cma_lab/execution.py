@@ -12,7 +12,7 @@ import re
 import uuid
 
 from journal import JournalValidationError, TradeJournal
-from lab import account_standing, lab_env, mcp_call_tool
+from lab import TICKER, account_standing, lab_env, mcp_call_tool
 from risk_gate import APPETITE_PRESETS, evaluate, load_risk_config
 
 # --- LIVE EXECUTION SAFETY -------------------------------------------------
@@ -86,7 +86,7 @@ def h_propose(inp: dict) -> str:
             regime=str(inp.get("regime", "unspecified")),
             strategy=str(inp.get("strategy", "unspecified")),
             side=str(inp.get("side", "buy")).lower(),
-            symbol=str(inp.get("symbol", "SPY")),
+            symbol=str(inp.get("symbol", TICKER)),
             quantity=quantity,
             entry_style=str(inp.get("entry_style", "market")).lower(),
             limit_price=(float(inp["limit_price"]) if inp.get("limit_price") not in (None, "") else None),
@@ -167,9 +167,9 @@ def _extract_price(text: str):
     return float(m.group(1)) if m else None
 
 
-def _live_spy_price():
+def _live_price():
     try:
-        return _extract_price(mcp_call_tool("get_equity_quotes", {"symbols": ["SPY"]}))
+        return _extract_price(mcp_call_tool("get_equity_quotes", {"symbols": [TICKER]}))
     except Exception:  # noqa: BLE001
         return None
 
@@ -212,7 +212,7 @@ def _gate_and_afford(entry: dict) -> tuple[str | None, float]:
     if not decision.allowed:
         return "BLOCKED by risk gate — not executed. Proposal stays pending.", 0.0
 
-    px = entry.get("limit_price") or _live_spy_price() or entry.get("snapshot_price") or 0
+    px = entry.get("limit_price") or _live_price() or entry.get("snapshot_price") or 0
     notional = float(px) * float(entry["quantity"])
     try:
         bp = account_standing(ACCOUNT)["buying_power"]
@@ -238,7 +238,7 @@ def execute_sim(entry: dict) -> str:
     if entry["entry_style"] == "limit" and entry.get("limit_price"):
         fill = entry["limit_price"]
     else:
-        fill = _live_spy_price() or entry.get("limit_price") or entry.get("snapshot_price") or px
+        fill = _live_price() or entry.get("limit_price") or entry.get("snapshot_price") or px
     J.open_sim(entry["id"], fill_price=float(fill), filled_qty=float(entry["quantity"]))
     return (f"SIM fill: {entry['quantity']:g} {entry['symbol']} @ ${float(fill):.2f}. "
             f"Journaled as open (mode=sim).")
@@ -263,7 +263,7 @@ def execute_approved(entry: dict) -> str:
             return f"Pre-trade review failed: {ex}. Proposal stays approved."
         print(f"  [review] {review[:600]}")
         # 2) Typed confirmation — the real-money gate.
-        est = (entry.get("limit_price") or _live_spy_price() or entry.get("snapshot_price") or 0) \
+        est = (entry.get("limit_price") or _live_price() or entry.get("snapshot_price") or 0) \
             * float(entry["quantity"])
         confirm = input(f"  ⚠ PLACE REAL ORDER — {entry['quantity']:g} {entry['symbol']} "
                         f"~${est:.0f}. Type LIVE to confirm: ").strip()
@@ -281,7 +281,7 @@ def execute_approved(entry: dict) -> str:
         if entry["entry_style"] == "limit" and entry.get("limit_price"):
             fill = entry["limit_price"]
         else:
-            fill = _live_spy_price() or entry.get("limit_price") or entry.get("snapshot_price")
+            fill = _live_price() or entry.get("limit_price") or entry.get("snapshot_price")
         mode = "SIMULATED"
 
     J.mark_executed(entry["id"], fill_price=float(fill), filled_qty=float(entry["quantity"]))
