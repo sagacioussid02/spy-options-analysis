@@ -17,7 +17,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-SHADOW_PATH = Path(__file__).parent / "shadow.json"
+from store import store
+
+SHADOW_PATH = Path(__file__).parent / "shadow.json"  # legacy file location
 
 
 def _now() -> str:
@@ -45,10 +47,12 @@ class ShadowEntry:
 
 
 class ShadowStore:
-    def __init__(self, path: Path = SHADOW_PATH):
-        self.path = path
+    def __init__(self, path: Optional[Path] = None):
+        self.path = path  # explicit path = legacy file mode (tests); else store()
 
     def _load(self) -> list[dict]:
+        if self.path is None:
+            return store().load("shadow", []) or []
         if self.path.exists():
             try:
                 return json.loads(self.path.read_text())
@@ -57,7 +61,10 @@ class ShadowStore:
         return []
 
     def _save(self, entries: list[dict]) -> None:
-        self.path.write_text(json.dumps(entries, indent=2))
+        if self.path is None:
+            store().save("shadow", entries)
+        else:
+            self.path.write_text(json.dumps(entries, indent=2))
 
     def record_pass(self, *, debate_id: Optional[str], symbol: str, side: str,
                      entry_price: float, exit_plan: dict, reason: str) -> ShadowEntry:

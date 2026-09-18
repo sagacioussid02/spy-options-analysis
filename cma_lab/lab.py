@@ -19,8 +19,10 @@ from typing import Optional
 
 import anthropic
 
+from store import store
+
 # --- where we remember the IDs of things we've already created -----------------
-STATE_PATH = Path(__file__).parent / "cma_state.json"
+# Collection "cma_state" (cma_state.json locally, Postgres in the cloud).
 
 # CMA is in beta; the SDK sets the beta header automatically on client.beta.*,
 # so we just use a normal client.
@@ -42,10 +44,54 @@ def _dotenv() -> dict:
     return out
 
 
+# Robinhood tokens ROTATE on refresh. A cloud run has no persistent .env, so
+# the current pair lives in the store's "secrets" collection (Postgres only —
+# with the JSON backend it stays in .env exactly as before) and is consulted
+# first, so local and cloud runs share one token lineage.
+_SECRET_KEYS = {"ROBINHOOD_ACCESS_TOKEN", "ROBINHOOD_REFRESH_TOKEN",
+                "ROBINHOOD_TOKEN_EXPIRES_AT", "ROBINHOOD_CLIENT_ID"}
+
+
+def _secrets_store_active() -> bool:
+    return type(store()).__name__ == "PostgresStore"
+
+
 def lab_env(key: str, default: Optional[str] = None) -> Optional[str]:
-    """Read a value from cma_lab/.env first, then the OS environment."""
+    """Read a value from the secrets store (Postgres only), then cma_lab/.env,
+    then the OS environment."""
     import os
+    if key in _SECRET_KEYS and _secrets_store_active():
+        v = (store().load("secrets", {}) or {}).get(key.lower())
+        if v:
+            return v
     return _dotenv().get(key) or os.environ.get(key) or default
+
+
+def _save_secret(key: str, value: str) -> None:
+    """Persist a rotated token: to the store when Postgres is active, and to
+    .env when that file exists (local)."""
+    if _secrets_store_active():
+        secrets = store().load("secrets", {}) or {}
+        secrets[key.lower()] = value
+        store().save("secrets", secrets)
+    if (Path(__file__).parent / ".env").exists():
+        _update_env_value(key, value)
+
+
+def seed_secrets_from_env() -> list[str]:
+    """One-time: copy the Robinhood token fields from .env into the store so
+    a cloud run can start from them. Returns the keys copied."""
+    if not _secrets_store_active():
+        return []
+    secrets = store().load("secrets", {}) or {}
+    copied = []
+    for key in sorted(_SECRET_KEYS):
+        v = _dotenv().get(key)
+        if v:
+            secrets[key.lower()] = v
+            copied.append(key)
+    store().save("secrets", secrets)
+    return copied
 
 
 # The single active ticker — one at a time. Set TICKER=<SYM> in cma_lab/.env
@@ -100,10 +146,14 @@ def refresh_robinhood_token() -> Optional[str]:
     access = tok.get("access_token")
     if not access:
         return None
-    _update_env_value("ROBINHOOD_ACCESS_TOKEN", access)
+    _save_secret("ROBINHOOD_ACCESS_TOKEN", access)
     if tok.get("refresh_token"):
-        _update_env_value("ROBINHOOD_REFRESH_TOKEN", tok["refresh_token"])
-    print("[refresh] local Robinhood token refreshed")
+        _save_secret("ROBINHOOD_REFRESH_TOKEN", tok["refresh_token"])
+    if tok.get("expires_in"):
+        from datetime import datetime, timedelta, timezone
+        exp = datetime.now(timezone.utc) + timedelta(seconds=int(tok["expires_in"]))
+        _save_secret("ROBINHOOD_TOKEN_EXPIRES_AT", exp.isoformat())
+    print("[refresh] Robinhood token refreshed")
     return access
 
 
@@ -122,13 +172,11 @@ def client() -> anthropic.Anthropic:
 
 
 def load_state() -> dict:
-    if STATE_PATH.exists():
-        return json.loads(STATE_PATH.read_text())
-    return {}
+    return store().load("cma_state", {}) or {}
 
 
 def save_state(state: dict) -> None:
-    STATE_PATH.write_text(json.dumps(state, indent=2))
+    store().save("cma_state", state)
 
 
 def get_or_create_environment(

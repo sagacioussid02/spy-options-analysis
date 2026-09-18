@@ -48,8 +48,7 @@ AGENT_ID_KEY = "futurist_agent_id"
 AGENT_SPEC_KEY = "futurist_agent_spec"
 SPEC_VERSION = 1
 
-THESES_DIR = Path(__file__).parent / "theses"
-ARCHIVE_DIR = THESES_DIR / "archive"
+from store import store
 _VERDICTS = {"strengthening", "intact", "weakening", "invalidated"}
 
 READ_TOOLS = ["search", "get_equity_quotes", "get_equity_tradability"]
@@ -156,12 +155,16 @@ SYSTEM = (
 
 
 # ------------------------------ handlers -------------------------------------
+def _theses() -> dict:
+    """{slug: markdown} — collection "theses" (theses/<slug>.md locally)."""
+    return store().load("theses", {}) or {}
+
+
 def h_theses_full(_i) -> str:
-    THESES_DIR.mkdir(exist_ok=True)
-    files = sorted(THESES_DIR.glob("*.md"))
-    if not files:
+    theses = _theses()
+    if not theses:
         return "(no theses yet)"
-    return "\n\n---\n\n".join(f.read_text() for f in files)
+    return "\n\n---\n\n".join(theses[k] for k in sorted(theses))
 
 
 def h_futurist_predictions(_i) -> str:
@@ -182,19 +185,22 @@ def h_review_thesis(inp: dict) -> str:
         return f"Rejected: verdict must be one of {sorted(_VERDICTS)}."
     if not note:
         return "Rejected: note required."
-    path = THESES_DIR / f"{slug}.md"
-    if not path.exists():
-        return f"Rejected: no thesis {slug}.md — write_thesis first."
-    text = path.read_text()
+    theses = _theses()
+    if slug not in theses:
+        return f"Rejected: no thesis {slug} — write_thesis first."
+    text = theses[slug]
     today = datetime.now(timezone.utc).date().isoformat()
     text = re.sub(r"^status: .*$", f"status: {verdict}", text, count=1, flags=re.MULTILINE)
     text += f"\n### {today} — {verdict}\n{note}\n"
     if verdict == "invalidated":
-        ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
-        (ARCHIVE_DIR / f"{slug}.md").write_text(text)
-        path.unlink()
+        archive = store().load("theses_archive", {}) or {}
+        archive[slug] = text
+        store().save("theses_archive", archive)
+        del theses[slug]
+        store().save("theses", theses)
         return f"Thesis {slug} marked invalidated and archived."
-    path.write_text(text)
+    theses[slug] = text
+    store().save("theses", theses)
     return f"Thesis {slug} reviewed: {verdict}."
 
 
@@ -202,7 +208,6 @@ def h_write_thesis(inp: dict) -> str:
     slug = _slug(str(inp.get("slug", "")).strip())
     if not slug:
         return "Rejected: slug required."
-    THESES_DIR.mkdir(exist_ok=True)
     today = datetime.now(timezone.utc).date().isoformat()
     body = (
         f"# {str(inp.get('title', '')).strip()}\n\n"
@@ -216,8 +221,10 @@ def h_write_thesis(inp: dict) -> str:
         f"## What Would Change My Mind\n{str(inp.get('what_would_change_my_mind', '')).strip()}\n\n"
         f"## Review Log\n(none yet)\n"
     )
-    (THESES_DIR / f"{slug}.md").write_text(body)
-    return f"Thesis written: {slug}.md"
+    theses = _theses()
+    theses[slug] = body
+    store().save("theses", theses)
+    return f"Thesis written: {slug}"
 
 
 def h_log_prediction(inp: dict) -> str:
@@ -245,17 +252,16 @@ HANDLERS = {
 def theses_index_text() -> str:
     """Compact index for injection into other personas' context: slug, one-line
     view, status, next catalyst hint. Never raises — worst case, says none yet."""
-    THESES_DIR.mkdir(exist_ok=True)
-    files = sorted(THESES_DIR.glob("*.md"))
-    if not files:
+    theses = _theses()
+    if not theses:
         return "Theses index: none yet."
     lines = ["Theses index (long-horizon research from the Futurist):"]
-    for f in files:
-        text = f.read_text()
-        title = text.splitlines()[0].lstrip("#").strip() if text else f.stem
+    for slug in sorted(theses):
+        text = theses[slug]
+        title = text.splitlines()[0].lstrip("#").strip() if text else slug
         m = re.search(r"^status: (.+)$", text, re.MULTILINE)
         status = m.group(1).strip() if m else "?"
-        lines.append(f"  - {f.stem} [{status}]: {title}")
+        lines.append(f"  - {slug} [{status}]: {title}")
     return "\n".join(lines)
 
 

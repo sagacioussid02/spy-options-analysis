@@ -60,11 +60,10 @@ from lab import (
     save_state,
 )
 from shadow import ShadowStore
+from store import store
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MODEL = "claude-haiku-4-5"          # personas run cheap; reflect/futurist run Sonnet later
-DEBATES_DIR = Path(__file__).parent / "debates"
-BELIEFS_DIR = Path(__file__).parent / "beliefs"
 
 # ------------------------------ beliefs (persistent, per-persona) ------------
 SEED_BELIEFS = {
@@ -82,56 +81,48 @@ SEED_BELIEFS = {
 }
 
 
-def _beliefs_path(persona: str) -> Path:
-    return BELIEFS_DIR / f"{persona}.md"
-
-
 def _read_beliefs(persona: str) -> str:
-    BELIEFS_DIR.mkdir(exist_ok=True)
-    p = _beliefs_path(persona)
-    if not p.exists():
-        p.write_text(SEED_BELIEFS.get(persona, f"# {persona} beliefs\n\n(no notes yet)\n"))
-    text = p.read_text()
+    beliefs = store().load("beliefs", {}) or {}
+    if persona not in beliefs:
+        beliefs[persona] = SEED_BELIEFS.get(persona, f"# {persona} beliefs\n\n(no notes yet)\n")
+        store().save("beliefs", beliefs)
+    text = beliefs[persona]
     words = text.split()
     return text if len(words) <= 3000 else " ".join(words[-3000:])
 
 
+# ------------------------------ debates (collection "debates") ---------------
+def load_debates() -> list[dict]:
+    """All recorded debates, oldest first (by created_at)."""
+    docs = store().load("debates", {}) or {}
+    return sorted(docs.values(), key=lambda d: d.get("created_at", ""))
+
+
+def save_debate(debate: dict) -> None:
+    docs = store().load("debates", {}) or {}
+    docs[debate["id"]] = debate
+    store().save("debates", docs)
+
+
 # ------------------------------ desk-activity nudge (task 3.5) ---------------
-def _recent_debate_files(n: int = 5) -> list[Path]:
-    DEBATES_DIR.mkdir(exist_ok=True)
-    files = sorted(DEBATES_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime)
-    return files[-n:]
-
-
 def _activity_status() -> str:
-    files = _recent_debate_files(5)
-    proposed = 0
-    for f in files:
-        try:
-            d = json.loads(f.read_text())
-        except (json.JSONDecodeError, OSError):
-            continue
-        if (d.get("pm_decision") or {}).get("decision") == "propose":
-            proposed += 1
-    if len(files) >= 3 and proposed < 3:
-        return (f"UNDER-TRADING: only {proposed} of the last {len(files)} committee "
+    recent = load_debates()[-5:]
+    proposed = sum(1 for d in recent
+                   if (d.get("pm_decision") or {}).get("decision") == "propose")
+    if len(recent) >= 3 and proposed < 3:
+        return (f"UNDER-TRADING: only {proposed} of the last {len(recent)} committee "
                 f"sessions proposed a trade. A pass must be argued for like a "
                 f"position — prefer a small, sized-down entry over silence when the "
                 f"case is merely uncertain rather than bad.")
-    return f"Desk activity: {proposed} of the last {len(files)} sessions proposed a trade."
+    return f"Desk activity: {proposed} of the last {len(recent)} sessions proposed a trade."
 
 
 def _debate_track_record() -> str:
     """Per-persona grading tally from reflect.py's grade_debate — feeds the PM's
     calibration context on who to trust under disagreement."""
-    DEBATES_DIR.mkdir(exist_ok=True)
     tally = {"bull_right": 0, "bear_right": 0, "both_wrong": 0, "unclear": 0}
     n = 0
-    for f in sorted(DEBATES_DIR.glob("*.json")):
-        try:
-            d = json.loads(f.read_text())
-        except (json.JSONDecodeError, OSError):
-            continue
+    for d in load_debates():
         g = d.get("grade")
         if g in tally:
             tally[g] += 1
@@ -721,8 +712,7 @@ def run_once() -> dict:
         "bear_case": bear_case,
         "pm_decision": pm_decision,
     }
-    DEBATES_DIR.mkdir(exist_ok=True)
-    (DEBATES_DIR / f"{debate_id}.json").write_text(json.dumps(debate, indent=2))
+    save_debate(debate)
     print(f"\n=== debate {debate_id} recorded: {pm_decision['decision']} ===")
     return debate
 

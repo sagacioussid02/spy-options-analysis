@@ -1,0 +1,16 @@
+# Runtime deps for the engine + cma_lab, pinned from the working .venv.
+# Deliberately NOT included: torch / transformers (FinBERT). The engine falls
+# back to keyword sentiment when they're absent, and a multi-GB install has no
+# place in a scheduled cloud run. Install them locally by hand if you want
+# FinBERT: pip install torch transformers
+anthropic==0.107.0
+mcp==1.27.2
+langgraph==1.2.11
+langgraph-checkpoint-sqlite==3.1.1
+psycopg[binary]==3.3.5
+yfinance==1.0
+pandas==2.3.3
+numpy==2.4.0
+scipy==1.16.3
+requests==2.32.5
+python-dotenv==1.2.1

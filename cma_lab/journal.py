@@ -22,7 +22,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-JOURNAL_PATH = Path(__file__).parent / "journal.json"
+from store import store
+
+JOURNAL_PATH = Path(__file__).parent / "journal.json"  # legacy file location
 
 
 def _now() -> str:
@@ -76,11 +78,16 @@ class JournalEntry:
 
 
 class TradeJournal:
-    def __init__(self, path: Path = JOURNAL_PATH):
+    def __init__(self, path: Optional[Path] = None):
+        # An explicit path keeps the old file-backed behaviour (tests, demos);
+        # otherwise state goes through store() — JSON files locally, Postgres
+        # when DATABASE_URL is set (cloud runs).
         self.path = path
 
     # ---------------------------- storage ----------------------------
     def _load(self) -> list[dict]:
+        if self.path is None:
+            return store().load("journal", []) or []
         if self.path.exists():
             try:
                 return json.loads(self.path.read_text())
@@ -89,7 +96,10 @@ class TradeJournal:
         return []
 
     def _save(self, entries: list[dict]) -> None:
-        self.path.write_text(json.dumps(entries, indent=2))
+        if self.path is None:
+            store().save("journal", entries)
+        else:
+            self.path.write_text(json.dumps(entries, indent=2))
 
     # ---------------------------- writes -----------------------------
     def propose(self, *, thesis: str, conviction: float, regime: str, strategy: str,

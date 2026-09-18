@@ -40,7 +40,6 @@ from langgraph.graph import END, START, StateGraph
 
 import exploration
 from committee import (
-    DEBATES_DIR,
     READ_HANDLERS,
     _activity_status,
     _calibration_text,
@@ -56,6 +55,7 @@ from committee import (
     make_h_pass,
     make_h_pm_propose,
     make_h_register_hypothesis,
+    save_debate,
 )
 from execution import J
 from futurist import theses_index_text
@@ -220,8 +220,7 @@ def record_debate(state: CommitteeState) -> dict:
         "bear_case": state.get("bear_case", {}),
         "pm_decision": state.get("pm_decision", {}),
     }
-    DEBATES_DIR.mkdir(exist_ok=True)
-    (DEBATES_DIR / f"{debate_id}.json").write_text(json.dumps(debate, indent=2))
+    save_debate(debate)
     print(f"\n=== debate {debate_id} recorded: {debate['pm_decision'].get('decision')} ===")
     return {}
 

@@ -9,32 +9,27 @@ Lessons + suggestions store — the output of reflection, the input to the advis
   These are NOT auto-applied — you apply them (via the copilot's guarded
   set_risk_parameter) so a human stays in the loop, consistent with the rest of
   the system.
+
+Both live in the store (collections "lessons" and "risk_suggestions") — the
+same files as before locally, Postgres in the cloud.
 """
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
-from pathlib import Path
 
-LESSONS_PATH = Path(__file__).parent / "lessons.md"
-SUGGESTIONS_PATH = Path(__file__).parent / "risk_suggestions.json"
+from store import store
 
 
 def read_lessons() -> str:
-    return LESSONS_PATH.read_text() if LESSONS_PATH.exists() else "(no lessons recorded yet)"
+    return store().load("lessons") or "(no lessons recorded yet)"
 
 
 def set_lessons(text: str) -> None:
-    LESSONS_PATH.write_text(text)
+    store().save("lessons", text)
 
 
 def list_suggestions() -> list[dict]:
-    if SUGGESTIONS_PATH.exists():
-        try:
-            return json.loads(SUGGESTIONS_PATH.read_text())
-        except (json.JSONDecodeError, OSError):
-            return []
-    return []
+    return store().load("risk_suggestions", []) or []
 
 
 def add_suggestion(parameter: str, value: str, rationale: str) -> dict:
@@ -47,9 +42,9 @@ def add_suggestion(parameter: str, value: str, rationale: str) -> dict:
     }
     s = list_suggestions()
     s.append(entry)
-    SUGGESTIONS_PATH.write_text(json.dumps(s, indent=2))
+    store().save("risk_suggestions", s)
     return entry
 
 
 def clear_suggestions() -> None:
-    SUGGESTIONS_PATH.write_text("[]")
+    store().save("risk_suggestions", [])

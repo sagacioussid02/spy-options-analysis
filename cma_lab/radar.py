@@ -15,7 +15,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-RADAR_PATH = Path(__file__).parent / "radar.json"
+from store import store
+
+RADAR_PATH = Path(__file__).parent / "radar.json"  # legacy file location
 
 
 @dataclass
@@ -37,10 +39,12 @@ class Candidate:
 
 
 class Radar:
-    def __init__(self, path: Path = RADAR_PATH):
-        self.path = path
+    def __init__(self, path: Optional[Path] = None):
+        self.path = path  # explicit path = legacy file mode (tests); else store()
 
     def _load(self) -> list[dict]:
+        if self.path is None:
+            return store().load("radar", []) or []
         if self.path.exists():
             try:
                 return json.loads(self.path.read_text())
@@ -49,7 +53,10 @@ class Radar:
         return []
 
     def _save(self, items: list[dict]) -> None:
-        self.path.write_text(json.dumps(items, indent=2))
+        if self.path is None:
+            store().save("radar", items)
+        else:
+            self.path.write_text(json.dumps(items, indent=2))
 
     def add(self, **kw) -> Candidate:
         c = Candidate(

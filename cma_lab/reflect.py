@@ -38,6 +38,8 @@ from lab import (
     save_state,
 )
 from risk_gate import APPETITE_PRESETS, load_overrides, load_risk_config
+from committee import load_debates, save_debate
+from store import store
 
 MODEL = "claude-sonnet-4-6"
 AGENT_ID_KEY = "reflect_agent_id"
@@ -49,8 +51,6 @@ APPETITE_ORDER = ["conservative", "moderate", "aggressive"]
 
 _THESIS_GRADES = {"right_win", "right_loss", "wrong_win", "wrong_loss"}
 _DEBATE_GRADES = {"bull_right", "bear_right", "both_wrong", "unclear"}
-DEBATES_DIR = Path(__file__).parent / "debates"
-BELIEFS_DIR = Path(__file__).parent / "beliefs"
 
 J = TradeJournal()
 
@@ -297,11 +297,6 @@ def h_grade_trade(inp: dict) -> str:
     return f"Graded {entry_id}: {grade}."
 
 
-def _debate_files() -> list:
-    DEBATES_DIR.mkdir(exist_ok=True)
-    return sorted(DEBATES_DIR.glob("*.json"))
-
-
 def _debate_resolution(d: dict) -> dict | None:
     """None if not yet resolved; otherwise a small summary dict."""
     pm = d.get("pm_decision") or {}
@@ -320,11 +315,7 @@ def _debate_resolution(d: dict) -> dict | None:
 
 def h_ungraded_debates(_i) -> str:
     out = []
-    for f in _debate_files():
-        try:
-            d = json.loads(f.read_text())
-        except (json.JSONDecodeError, OSError):
-            continue
+    for d in load_debates():
         if d.get("grade"):
             continue
         resolution = _debate_resolution(d)
@@ -342,13 +333,12 @@ def h_grade_debate(inp: dict) -> str:
     rationale = str(inp.get("rationale", "")).strip()
     if grade not in _DEBATE_GRADES:
         return f"Rejected: grade must be one of {sorted(_DEBATE_GRADES)}."
-    f = DEBATES_DIR / f"{debate_id}.json"
-    if not f.exists():
-        return f"Rejected: no debate file for {debate_id}."
-    d = json.loads(f.read_text())
+    d = next((x for x in load_debates() if x.get("id") == debate_id), None)
+    if d is None:
+        return f"Rejected: no debate record for {debate_id}."
     d["grade"] = grade
     d["grade_rationale"] = rationale
-    f.write_text(json.dumps(d, indent=2))
+    save_debate(d)
     return f"Graded debate {debate_id}: {grade}."
 
 
@@ -364,11 +354,11 @@ def h_update_beliefs(inp: dict) -> str:
         return "Rejected: persona must be one of bull, bear, pm."
     if not note:
         return "Rejected: note required."
-    BELIEFS_DIR.mkdir(exist_ok=True)
-    p = BELIEFS_DIR / f"{persona}.md"
-    existing = p.read_text() if p.exists() else f"# {persona} beliefs\n"
+    beliefs = store().load("beliefs", {}) or {}
+    existing = beliefs.get(persona) or f"# {persona} beliefs\n"
     today = datetime.now(timezone.utc).date().isoformat()
-    p.write_text(existing + f"\n\n## {today}\n{note}\n")
+    beliefs[persona] = existing + f"\n\n## {today}\n{note}\n"
+    store().save("beliefs", beliefs)
     return f"Beliefs updated for {persona}."
 
 

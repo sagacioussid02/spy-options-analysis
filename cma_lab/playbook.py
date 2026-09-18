@@ -15,7 +15,9 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Optional
 
-PLAYBOOK_PATH = Path(__file__).parent / "playbook.json"
+from store import store
+
+PLAYBOOK_PATH = Path(__file__).parent / "playbook.json"  # legacy file location
 
 
 def _slug(name: str) -> str:
@@ -41,10 +43,12 @@ class Hypothesis:
 
 
 class Playbook:
-    def __init__(self, path: Path = PLAYBOOK_PATH):
-        self.path = path
+    def __init__(self, path: Optional[Path] = None):
+        self.path = path  # explicit path = legacy file mode (tests); else store()
 
     def _load(self) -> list[dict]:
+        if self.path is None:
+            return store().load("playbook", []) or []
         if self.path.exists():
             try:
                 return json.loads(self.path.read_text())
@@ -53,7 +57,10 @@ class Playbook:
         return []
 
     def _save(self, entries: list[dict]) -> None:
-        self.path.write_text(json.dumps(entries, indent=2))
+        if self.path is None:
+            store().save("playbook", entries)
+        else:
+            self.path.write_text(json.dumps(entries, indent=2))
 
     def register(self, *, name: str, rule: str, rationale: str = "",
                  proposed_by: str = "?", min_trials: int = 10) -> dict:

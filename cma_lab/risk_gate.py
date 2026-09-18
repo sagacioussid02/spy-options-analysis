@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from lab import lab_env
+from store import store
 
 # The single active ticker (see lab.py) — same env/`.env` lookup lab.py's
 # own TICKER constant uses, so risk_gate and every agent agree on it.
@@ -136,9 +137,9 @@ def evaluate(tool_name: str, tool_input: dict, cfg: RiskConfig) -> RiskDecision:
 
 
 # ===================== runtime overrides (copilot-tweakable) =================
-# The copilot can adjust these within HARD caps. Stored in risk_overrides.json so
-# the change persists and the guarded trading agent picks it up on its next run.
-_OVERRIDES_PATH = Path(__file__).parent / "risk_overrides.json"
+# The copilot can adjust these within HARD caps. Stored in the "risk_overrides"
+# collection (risk_overrides.json locally) so the change persists and the
+# guarded trading agent picks it up on its next run.
 
 APPETITE_PRESETS = {
     "conservative": {"max_quantity": 1, "max_notional_per_order": 700.0},
@@ -151,16 +152,11 @@ HARD_MAX_NOTIONAL = 5000.0
 
 
 def load_overrides() -> dict:
-    if _OVERRIDES_PATH.exists():
-        try:
-            return json.loads(_OVERRIDES_PATH.read_text())
-        except (json.JSONDecodeError, OSError):
-            return {}
-    return {}
+    return store().load("risk_overrides", {}) or {}
 
 
 def save_overrides(overrides: dict) -> None:
-    _OVERRIDES_PATH.write_text(json.dumps(overrides, indent=2))
+    store().save("risk_overrides", overrides)
 
 
 def load_risk_config() -> RiskConfig:

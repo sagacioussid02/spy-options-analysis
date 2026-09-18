@@ -23,7 +23,9 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-PREDICTIONS_PATH = Path(__file__).parent / "predictions.json"
+from store import store
+
+PREDICTIONS_PATH = Path(__file__).parent / "predictions.json"  # legacy file location
 VALID_CATEGORIES = ("price", "macro", "industry", "stock")
 
 
@@ -105,10 +107,12 @@ def _validate(inp: dict) -> list[str]:
 
 
 class PredictionStore:
-    def __init__(self, path: Path = PREDICTIONS_PATH):
-        self.path = path
+    def __init__(self, path: Optional[Path] = None):
+        self.path = path  # explicit path = legacy file mode (tests); else store()
 
     def _load(self) -> list[dict]:
+        if self.path is None:
+            return store().load("predictions", []) or []
         if self.path.exists():
             try:
                 return json.loads(self.path.read_text())
@@ -117,7 +121,10 @@ class PredictionStore:
         return []
 
     def _save(self, entries: list[dict]) -> None:
-        self.path.write_text(json.dumps(entries, indent=2))
+        if self.path is None:
+            store().save("predictions", entries)
+        else:
+            self.path.write_text(json.dumps(entries, indent=2))
 
     def log(self, *, persona: str, debate_id: Optional[str] = None, **fields) -> dict:
         missing = _validate(fields)
