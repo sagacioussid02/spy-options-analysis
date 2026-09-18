@@ -1,4 +1,5 @@
 .env
+.venv/
 __pycache__/
 cma_lab/journal.json
 cma_lab/shadow.json
@@ -16,6 +17,6 @@ cma_lab/state_backup/
 cma_lab/risk_suggestions.json
 cma_lab/lessons.md
 cma_lab/radar.json
-- .DS_Store
-- *.pyc
-- spy_decision_engine/data/trades.json (optional - contains trade history)
+.DS_Store
+*.pyc
+# spy_decision_engine/data/trades.json is optional to ignore - contains trade history
