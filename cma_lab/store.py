@@ -196,23 +196,44 @@ class HttpProxyStore:
     for environments like a Claude Code cloud routine whose egress proxy
     only carries HTTPS. See store_proxy/api/store.py for the server side."""
 
+    # Seen in practice inside a Claude Code cloud routine sandbox: requests
+    # over the sandbox's HTTPS_PROXY intermittently drops with SSLError /
+    # "UNEXPECTED_EOF_WHILE_READING", while curl against the identical URL
+    # in the identical process succeeds every time. That points at
+    # connection-pool/keep-alive reuse of a proxy tunnel gone stale, not the
+    # proxy or store_proxy itself — so: no persistent Session (each call is
+    # a fresh connection, closed explicitly after), plus a short retry.
+    _RETRIES = 3
+
     def __init__(self, base_url: str, token: Optional[str]):
         import requests  # imported lazily, same reasoning as psycopg above
         self._requests = requests
         self.base_url = base_url.rstrip("/")
         self._headers = {"Authorization": f"Bearer {token}"} if token else {}
+        self._headers["Connection"] = "close"
+
+    def _request(self, method: str, name: str, **kw):
+        last_exc = None
+        for attempt in range(self._RETRIES):
+            try:
+                return method(f"{self.base_url}/api/store", params={"name": name},
+                              headers=self._headers, timeout=15, **kw)
+            except self._requests.exceptions.RequestException as ex:  # noqa: BLE001
+                last_exc = ex
+                if attempt < self._RETRIES - 1:
+                    import time
+                    time.sleep(0.5 * (attempt + 1))
+        raise RuntimeError(f"store_proxy request failed after {self._RETRIES} attempts: {last_exc}")
 
     def load(self, name: str, default: Any = None) -> Any:
-        r = self._requests.get(f"{self.base_url}/api/store", params={"name": name},
-                               headers=self._headers, timeout=15)
+        r = self._request(self._requests.get, name)
         if r.status_code != 200:
             raise RuntimeError(f"store_proxy GET {name} failed: {r.status_code} {r.text}")
         data = r.json().get("data")
         return data if data is not None else default
 
     def save(self, name: str, obj: Any) -> None:
-        r = self._requests.put(f"{self.base_url}/api/store", params={"name": name},
-                               headers=self._headers, json={"data": obj}, timeout=15)
+        r = self._request(self._requests.put, name, json={"data": obj})
         if r.status_code != 200:
             raise RuntimeError(f"store_proxy PUT {name} failed: {r.status_code} {r.text}")
 
