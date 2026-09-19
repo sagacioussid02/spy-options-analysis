@@ -8,7 +8,7 @@ module. That works on a laptop and breaks in a scheduled cloud run, which
 starts from a fresh git checkout where every one of those (gitignored) files
 is missing and any write is thrown away when the run ends.
 
-So: one `store()` with two backends, chosen by the presence of DATABASE_URL.
+So: one `store()` with three backends.
 
 - JsonFileStore  (default) — exactly the same files/dirs as before, so local
   behaviour is unchanged: cma_lab/<name>.json, lessons.md, debates/<id>.json,
@@ -16,7 +16,16 @@ So: one `store()` with two backends, chosen by the presence of DATABASE_URL.
 - PostgresStore  (DATABASE_URL set) — one table, `collections(name, data
   jsonb)`. A "collection" is whatever the module used to keep in one file
   (a list, a dict, or a string), or for directory-backed collections a dict
-  of {doc_name: content}.
+  of {doc_name: content}. Direct psycopg TCP — fine on a laptop, but a
+  Claude Code cloud routine's egress proxy only carries HTTPS, so a raw
+  Postgres connection from there just times out.
+- HttpProxyStore  (STORE_PROXY_URL set — takes priority over DATABASE_URL)
+  — the same collections table, reached over plain HTTPS through
+  store_proxy/ (a tiny Vercel function that holds the real DATABASE_URL and
+  does the psycopg call itself, since Vercel functions aren't network-
+  restricted). Auth is one bearer token, STORE_PROXY_TOKEN. This is what
+  cloud routines should set; local runs keep using PostgresStore or
+  JsonFileStore directly.
 
 Module API is intentionally tiny: load(name, default) / save(name, obj) /
 lock(name). Modules keep their public APIs; only their _load/_save bodies
@@ -181,16 +190,57 @@ class PostgresStore:
         return f"postgres ({host})"
 
 
+class HttpProxyStore:
+    """Same collections table as PostgresStore, reached over HTTPS through
+    store_proxy/ instead of a direct (TCP, non-HTTPS) psycopg connection —
+    for environments like a Claude Code cloud routine whose egress proxy
+    only carries HTTPS. See store_proxy/api/store.py for the server side."""
+
+    def __init__(self, base_url: str, token: Optional[str]):
+        import requests  # imported lazily, same reasoning as psycopg above
+        self._requests = requests
+        self.base_url = base_url.rstrip("/")
+        self._headers = {"Authorization": f"Bearer {token}"} if token else {}
+
+    def load(self, name: str, default: Any = None) -> Any:
+        r = self._requests.get(f"{self.base_url}/api/store", params={"name": name},
+                               headers=self._headers, timeout=15)
+        if r.status_code != 200:
+            raise RuntimeError(f"store_proxy GET {name} failed: {r.status_code} {r.text}")
+        data = r.json().get("data")
+        return data if data is not None else default
+
+    def save(self, name: str, obj: Any) -> None:
+        r = self._requests.put(f"{self.base_url}/api/store", params={"name": name},
+                               headers=self._headers, json={"data": obj}, timeout=15)
+        if r.status_code != 200:
+            raise RuntimeError(f"store_proxy PUT {name} failed: {r.status_code} {r.text}")
+
+    @contextlib.contextmanager
+    def lock(self, name: str):
+        """No cross-request locking — store_proxy is a stateless function
+        (see its docstring). Fine for one routine running at a time."""
+        yield
+
+    def describe(self) -> str:
+        return f"http proxy ({self.base_url})"
+
+
 _store = None
 
 
 def store():
-    """The process-wide store. DATABASE_URL (env or cma_lab/.env) selects
+    """The process-wide store. STORE_PROXY_URL (cloud routines) takes
+    priority; then DATABASE_URL (env or cma_lab/.env) selects direct
     Postgres; otherwise the original JSON files."""
     global _store
     if _store is None:
-        dsn = _env("DATABASE_URL")
-        _store = PostgresStore(dsn) if dsn else JsonFileStore()
+        proxy_url = _env("STORE_PROXY_URL")
+        if proxy_url:
+            _store = HttpProxyStore(proxy_url, _env("STORE_PROXY_TOKEN"))
+        else:
+            dsn = _env("DATABASE_URL")
+            _store = PostgresStore(dsn) if dsn else JsonFileStore()
     return _store
 
 
