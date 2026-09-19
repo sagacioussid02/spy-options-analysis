@@ -44,7 +44,7 @@ from advisor import (
 )
 from chunk6_read_agent import READ_TOOLS
 import exploration
-from execution import J, execute_sim, h_propose
+from execution import J, execute_autonomous, execute_sim, h_propose
 from futurist import theses_index_text
 from playbook import Playbook
 from lab import (
@@ -534,7 +534,12 @@ def make_h_pm_propose(debate_id: str):
         if entry.get("mode") == "sim":
             exec_msg = execute_sim(entry)
             return result_msg + " " + exec_msg
-        return result_msg + " (live proposal — awaiting human /approve via advisor.py)"
+        # live: execute_autonomous decides for itself whether this qualifies
+        # (armed + under the notional/share caps) — if not, it returns an
+        # explanatory message and leaves the entry status='proposed', same
+        # as the old always-queue behavior.
+        exec_msg = execute_autonomous(entry)
+        return result_msg + " " + exec_msg
     return _h
 
 
@@ -697,7 +702,8 @@ def run_once() -> dict:
     shadow_entries = [e for e in ShadowStore()._load() if e.get("debate_id") == debate_id]
     if journal_entries:
         pm_decision = {"decision": "propose", "journal_id": journal_entries[-1]["id"],
-                      "mode": journal_entries[-1].get("mode")}
+                      "mode": journal_entries[-1].get("mode"),
+                      "status": journal_entries[-1].get("status")}
     elif shadow_entries:
         pm_decision = {"decision": "pass", "shadow_id": shadow_entries[-1]["id"]}
     else:

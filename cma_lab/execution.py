@@ -23,6 +23,12 @@ LIVE_EXECUTION = (lab_env("SPY_LIVE", "") or "").lower() in ("1", "true", "yes")
 LIVE_MAX_SHARES = 1                       # ramp cap: live orders may not exceed this
 ACCOUNT = lab_env("ROBINHOOD_ACCOUNT_NUMBER")  # the agentic_allowed account
 
+# Hard ceiling for a committee proposal executed WITHOUT a human present (see
+# execute_autonomous below). Same SPY_LIVE switch arms this as arms the
+# interactive typed-confirm path — this is not a separate, easier-to-flip
+# gate, it's a size cap layered on top of the same one.
+AUTONOMOUS_MAX_NOTIONAL = 30.0
+
 J = TradeJournal()
 
 # origin_reason (from the proposer) -> origin (stored on the journal entry).
@@ -286,3 +292,52 @@ def execute_approved(entry: dict) -> str:
 
     J.mark_executed(entry["id"], fill_price=float(fill), filled_qty=float(entry["quantity"]))
     return f"{mode} fill: {entry['quantity']:g} {entry['symbol']} @ ${float(fill):.2f}. Journaled as executed."
+
+
+def execute_autonomous(entry: dict) -> str:
+    """Committee proposals under AUTONOMOUS_MAX_NOTIONAL execute for real with
+    NO human confirmation — this is the one path in the whole codebase that
+    places a live order without a typed "LIVE". Called only from
+    committee.py's make_h_pm_propose, and only after it has independently
+    confirmed the same notional cap (belt-and-suspenders: this function
+    re-checks so it is never the only place enforcing it).
+
+    Every other guardrail is identical to execute_approved: risk_gate +
+    buying-power check via _gate_and_afford, the same LIVE_MAX_SHARES ramp
+    cap, a real pre-trade review call, and the same idempotent ref_id so a
+    retry can never double-fill."""
+    if not LIVE_EXECUTION:
+        return "Not armed (SPY_LIVE unset) — autonomous execution skipped; proposal stays pending."
+    if not ACCOUNT:
+        return "No ROBINHOOD_ACCOUNT_NUMBER configured — cannot place a live order."
+
+    est_price = entry.get("limit_price") or _live_price() or entry.get("snapshot_price") or 0
+    notional = float(est_price) * float(entry["quantity"])
+    if notional > AUTONOMOUS_MAX_NOTIONAL:
+        return (f"${notional:.2f} exceeds the ${AUTONOMOUS_MAX_NOTIONAL:.0f} autonomous cap — "
+                f"leaving queued for human /approve via advisor.py.")
+    if float(entry["quantity"]) > LIVE_MAX_SHARES:
+        return (f"Live ramp cap: live orders are limited to {LIVE_MAX_SHARES} share(s) — "
+                f"leaving queued for human /approve via advisor.py.")
+
+    reason, _px = _gate_and_afford(entry)
+    if reason:
+        return reason
+
+    try:
+        review = mcp_call_tool("review_equity_order", _order_args(entry, include_ref=False))
+    except Exception as ex:  # noqa: BLE001
+        return f"Pre-trade review failed: {ex}. Proposal stays pending (not executed)."
+    print(f"  [autonomous review] {review[:600]}")
+
+    try:
+        raw = mcp_call_tool("place_equity_order", _order_args(entry, include_ref=True))
+    except Exception as ex:  # noqa: BLE001
+        return f"Autonomous LIVE place failed: {ex}. Proposal stays pending (not executed)."
+    print(f"  [autonomous order] {raw[:400]}")
+
+    fill = _extract_price(raw) or entry.get("limit_price") or entry.get("snapshot_price")
+    J.mark_executed(entry["id"], fill_price=float(fill), filled_qty=float(entry["quantity"]))
+    return (f"AUTONOMOUS LIVE fill: {entry['quantity']:g} {entry['symbol']} @ ${float(fill):.2f} "
+            f"(~${notional:.2f}, under the ${AUTONOMOUS_MAX_NOTIONAL:.0f} cap). "
+            f"Journaled as executed — no human confirmation.")

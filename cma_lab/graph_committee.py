@@ -181,7 +181,8 @@ def pm(state: CommitteeState) -> dict:
     shadow_entries = [e for e in ShadowStore()._load() if e.get("debate_id") == debate_id]
     if journal_entries:
         pm_decision = {"decision": "propose", "journal_id": journal_entries[-1]["id"],
-                      "mode": journal_entries[-1].get("mode")}
+                      "mode": journal_entries[-1].get("mode"),
+                      "status": journal_entries[-1].get("status")}
     elif shadow_entries:
         pm_decision = {"decision": "pass", "shadow_id": shadow_entries[-1]["id"]}
     else:
@@ -192,12 +193,15 @@ def pm(state: CommitteeState) -> dict:
 
 def route_after_pm(state: CommitteeState) -> str:
     """The one new conditional edge V2 adds: sim proposals already
-    auto-executed inline (inside make_h_pm_propose's execute_sim call) — a
-    live proposal did NOT, and stays pending for a human. Both paths
-    record the debate; this just makes that distinction visible in the
-    graph instead of letting it pass silently."""
+    auto-executed inline (inside make_h_pm_propose's execute_sim call).
+    A live proposal is now one of two things: execute_autonomous may have
+    already filled it for real (status='executed', under the $30/ramp caps
+    and armed), or it's still status='proposed' waiting on a human. Only
+    the second case goes to live_pending — routing an already-executed
+    entry there would print a "not auto-executed" message that is simply
+    false."""
     d = state.get("pm_decision") or {}
-    if d.get("decision") == "propose" and d.get("mode") == "live":
+    if d.get("decision") == "propose" and d.get("mode") == "live" and d.get("status") == "proposed":
         return "live_pending"
     return "record_debate"
 
