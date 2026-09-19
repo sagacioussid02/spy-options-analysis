@@ -161,12 +161,18 @@ def client() -> anthropic.Anthropic:
     """
     One shared Anthropic client.
 
-    Credential precedence: cma_lab/.env (ANTHROPIC_API_KEY) first, then the
-    normal SDK resolution (ANTHROPIC_API_KEY env var, etc.).
+    Credential precedence: cma_lab/.env's ANTHROPIC_API_KEY, then the OS env
+    ANTHROPIC_API_KEY, then CMA_ANTHROPIC_API_KEY (.env or OS env) as a
+    fallback name. The fallback exists because Claude Code cloud routine
+    environments appear to reserve ANTHROPIC_API_KEY for the session's own
+    model auth — a user-set value under that exact name doesn't reach the
+    process env there (confirmed: DATABASE_URL/ROBINHOOD_ACCOUNT_NUMBER/
+    TICKER all propagate fine as plain env vars, only this name doesn't) —
+    so a routine's environment should set CMA_ANTHROPIC_API_KEY instead.
     """
     global _client
     if _client is None:
-        key = _dotenv().get("ANTHROPIC_API_KEY")
+        key = lab_env("ANTHROPIC_API_KEY") or lab_env("CMA_ANTHROPIC_API_KEY")
         _client = anthropic.Anthropic(api_key=key) if key else anthropic.Anthropic()
     return _client
 
