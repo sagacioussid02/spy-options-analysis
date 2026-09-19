@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Callable, Optional
 
-from strategies import Bar, Signal
+from strategies import Bar, EarningsEvent, Signal, StrategyContext
 
 
 @dataclass
@@ -59,6 +59,31 @@ def fetch_history(ticker: str, start: str, end: str) -> list[Bar]:
     return bars
 
 
+def fetch_earnings(ticker: str) -> list[EarningsEvent]:
+    """Historical earnings dates + EPS estimate/actual/surprise via yfinance
+    (needs the lxml parser yfinance uses under the hood for this table).
+    Returns events sorted oldest-first; future/unreported dates (eps_actual
+    is None) are kept out since post_earnings_drift needs a real surprise."""
+    import yfinance as yf
+    df = yf.Ticker(ticker).get_earnings_dates(limit=40)
+    if df is None or df.empty:
+        return []
+    events = []
+    for idx, row in df.iterrows():
+        eps_actual = row.get("Reported EPS")
+        if eps_actual is None or (isinstance(eps_actual, float) and eps_actual != eps_actual):
+            continue  # NaN == not yet reported
+        surprise = row.get("Surprise(%)")
+        events.append(EarningsEvent(
+            date=idx.date(),
+            eps_estimate=float(row.get("EPS Estimate")) if row.get("EPS Estimate") == row.get("EPS Estimate") else None,
+            eps_actual=float(eps_actual),
+            surprise_pct=float(surprise) if surprise == surprise else None,
+        ))
+    events.sort(key=lambda e: e.date)
+    return events
+
+
 def _exit_reason(signal: Signal, bar: Bar, days_held: int) -> Optional[str]:
     """Same precedence sweep.py._should_close uses: target/stop before
     time_stop, and between target/stop on the same bar, stop wins (the
@@ -74,14 +99,22 @@ def _exit_reason(signal: Signal, bar: Bar, days_held: int) -> Optional[str]:
     return None
 
 
-def run_backtest(strategy_fn: Callable[[list[Bar]], Optional[Signal]],
-                 bars: list[Bar], *, ticker: str = "", min_lookback: int = 30) -> BacktestResult:
+def run_backtest(strategy_fn: Callable[[StrategyContext], Optional[Signal]],
+                 bars: list[Bar], *, ticker: str = "", min_lookback: int = 30,
+                 reference: Optional[dict[str, list[Bar]]] = None,
+                 earnings: Optional[list[EarningsEvent]] = None) -> BacktestResult:
+    reference = reference or {}
+    earnings = earnings or []
     result = BacktestResult(strategy=strategy_fn.__name__, ticker=ticker)
     i = min_lookback
     n = len(bars)
     while i < n - 1:  # need a next bar to fill on
+        today = bars[i].date
         window = bars[:i + 1]
-        signal = strategy_fn(window)
+        ref_window = {k: [b for b in series if b.date <= today] for k, series in reference.items()}
+        earnings_window = [e for e in earnings if e.date <= today]
+        ctx = StrategyContext(bars=window, reference=ref_window, earnings=earnings_window)
+        signal = strategy_fn(ctx)
         if signal is None:
             i += 1
             continue

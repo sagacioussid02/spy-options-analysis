@@ -18,8 +18,8 @@ _CMA_LAB_DIR = Path(__file__).resolve().parent.parent
 if str(_CMA_LAB_DIR) not in sys.path:
     sys.path.insert(0, str(_CMA_LAB_DIR))
 
-from engine import fetch_history, run_backtest, summarize  # noqa: E402
-from strategies import STRATEGIES  # noqa: E402
+from engine import fetch_earnings, fetch_history, run_backtest, summarize  # noqa: E402
+from strategies import NEEDS_EARNINGS, NEEDS_REFERENCE, STRATEGIES  # noqa: E402
 
 _RULE_TEXT = {
     "trend_follow": "EMA9>EMA21, price>VWAP20, RSI14 in 50-70. Target 1.5xATR, "
@@ -31,6 +31,33 @@ _RULE_TEXT = {
                "Target 2.0xATR, stop 1.2xATR, time_stop 12 sessions.",
     "mean_reversion": "RSI14<30 and close < 20-day mean - 2*stdev. Target 1.2xATR, "
                       "stop 0.7xATR, time_stop 6 sessions.",
+    "anchoring_momentum": "Close within 5% of 252-session high, sustained >=90% "
+                          "nearness over last 5 sessions, positive 6mo return. "
+                          "Target = high (no premium), stop 12% below entry, time_stop 90 sessions.",
+    "volume_conditioned_momentum": "6mo return>0, price>SMA200, new 20-session high, "
+                                   "but 20d/252d relative volume <=0.85. Target 2.0xATR, "
+                                   "stop 1.3xATR, time_stop 60 sessions.",
+    "relative_strength_rotation": "3mo return beats sector ETF's 3mo return, own 3mo "
+                                  "return>0, SPY>SMA200 (risk-on). Target 4.0xATR, "
+                                  "stop 2.5xATR, time_stop 63 sessions.",
+    "panic_reversal": "Close>SMA200 (uptrend) and RSI(2)<5 (panic dip). Target 1.0xATR, "
+                      "stop 0.6xATR, time_stop 4 sessions.",
+    "turn_of_month": "Entry on/near the last trading day of the month, close>SMA50. "
+                     "Target 3.0xATR, stop 3.0xATR, time_stop 4 sessions.",
+    "post_earnings_drift": "Earnings surprise >=+5% reported within the last 5 sessions. "
+                           "Target 2.5xATR, stop 1.5xATR, time_stop 30 sessions.",
+}
+
+SECTOR_ETF = {
+    "AAPL": "XLK", "MSFT": "XLK", "NVDA": "XLK", "GOOGL": "XLK", "GOOG": "XLK",
+    "META": "XLK", "AVGO": "XLK", "AMD": "XLK", "CRM": "XLK", "ORCL": "XLK",
+    "JPM": "XLF", "BAC": "XLF", "WFC": "XLF", "GS": "XLF", "MS": "XLF",
+    "XOM": "XLE", "CVX": "XLE", "COP": "XLE",
+    "JNJ": "XLV", "UNH": "XLV", "PFE": "XLV", "LLY": "XLV", "ABBV": "XLV",
+    "AMZN": "XLY", "TSLA": "XLY", "HD": "XLY", "MCD": "XLY", "NKE": "XLY",
+    "PG": "XLP", "KO": "XLP", "PEP": "XLP", "WMT": "XLP", "COST": "XLP",
+    "BA": "XLI", "CAT": "XLI", "GE": "XLI", "UPS": "XLI",
+    "SPY": "SPY",
 }
 
 
@@ -68,16 +95,40 @@ def main() -> None:
     ap.add_argument("--seed-playbook", action="store_true",
                     help="Register each strategy as a playbook hypothesis and replay "
                          "its backtested trades through the real graduation rule.")
+    ap.add_argument("--sector", help="Sector ETF ticker to use for relative_strength_rotation "
+                                     "(overrides the built-in SECTOR_ETF map).")
     args = ap.parse_args()
 
     print(f"Fetching {args.ticker} {args.start}..{args.end} ...")
     bars = fetch_history(args.ticker, args.start, args.end)
     print(f"  {len(bars)} daily bars\n")
 
+    reference = {}
+    if any(name in NEEDS_REFERENCE for name in STRATEGIES):
+        sector_ticker = args.sector or SECTOR_ETF.get(args.ticker.upper())
+        print("Fetching reference series for relative_strength_rotation ...")
+        spy_bars = fetch_history("SPY", args.start, args.end)
+        reference["spy"] = spy_bars
+        if sector_ticker:
+            reference["sector"] = spy_bars if sector_ticker == "SPY" else fetch_history(sector_ticker, args.start, args.end)
+            print(f"  spy: {len(reference['spy'])} bars, sector({sector_ticker}): {len(reference['sector'])} bars\n")
+        else:
+            print(f"  no sector ETF mapping for {args.ticker} — relative_strength_rotation will sit out "
+                  f"(pass --sector to supply one)\n")
+
+    earnings = []
+    if any(name in NEEDS_EARNINGS for name in STRATEGIES):
+        print(f"Fetching earnings history for {args.ticker} ...")
+        earnings = fetch_earnings(args.ticker)
+        print(f"  {len(earnings)} reported earnings events\n")
+
     rows = []
     results = {}
     for name, fn in STRATEGIES.items():
-        result = run_backtest(fn, bars, ticker=args.ticker)
+        if name in NEEDS_REFERENCE and "sector" not in reference:
+            print(f"  skipping {name}: no sector reference available")
+            continue
+        result = run_backtest(fn, bars, ticker=args.ticker, reference=reference, earnings=earnings)
         results[name] = result
         rows.append(summarize(result))
 
