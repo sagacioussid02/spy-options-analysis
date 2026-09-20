@@ -1,8 +1,12 @@
 """
 Daily sweep — deterministic, no LLM.
 
-Closes open positions (currently: sim-lane positions opened via execute_sim)
-when they hit their stop, target, or time_stop, whichever comes first. Meant
+Closes open positions when they hit their stop, target, or time_stop,
+whichever comes first. Sim-lane positions close as a journal update only
+(paper). Live-lane positions place a REAL closing sell order first (see
+_close_live_position) — a journal entry marked "closed" must correspond to
+an actual flat position at the broker, since execution.py's portfolio
+exposure cap and sleeve.py's realized-P&L tracking both trust that. Meant
 to run once a day after the engine, piggybacked on the existing decision-view
 launchd job.
 
@@ -20,10 +24,15 @@ from __future__ import annotations
 
 import json
 from datetime import date, datetime, timezone
+from typing import Optional
 
-from execution import _extract_price
+import uuid
+
+import sleeve
+from execution import ACCOUNT, _extract_price, _qty_str
 from journal import TradeJournal
 from lab import mcp_call_tool
+from risk_gate import evaluate_close, load_risk_config
 
 J = TradeJournal()
 
@@ -57,6 +66,42 @@ def _should_close(entry: dict, quote: float, today: date) -> str | None:
         except ValueError:
             pass
     return None
+
+
+def _close_live_position(entry: dict) -> Optional[float]:
+    """Places the REAL closing sell order for a mode="live" position that
+    hit its stop/target/time_stop. Returns the actual fill price, or None
+    if the close couldn't be placed (in which case the caller must NOT
+    mark the journal entry closed — a journal saying "closed" for a
+    position that's still open at the broker is worse than a sweep pass
+    that just tries again next time)."""
+    if not ACCOUNT:
+        print(f"  [sweep] {entry['id']}: no ROBINHOOD_ACCOUNT_NUMBER, cannot close live position")
+        return None
+    decision = evaluate_close(entry["symbol"], entry["filled_qty"], load_risk_config())
+    print(f"  [sweep] [close-gate] {decision}")
+    if not decision.allowed:
+        return None
+    args = {
+        "account_number": ACCOUNT,
+        "symbol": entry["symbol"],
+        "side": "sell",
+        "type": "market",
+        "quantity": _qty_str(entry["filled_qty"]),
+        "time_in_force": "gfd",
+        "market_hours": "regular_hours",
+        # Distinct ref_id from the opening order's (which used entry["id"]
+        # directly) so this close is its own idempotent action, not a dedup
+        # collision with the entry order.
+        "ref_id": str(uuid.uuid5(uuid.NAMESPACE_OID, entry["id"] + "-close")),
+    }
+    try:
+        raw = mcp_call_tool("place_equity_order", args)
+    except Exception as ex:  # noqa: BLE001
+        print(f"  [sweep] {entry['id']}: LIVE close order failed: {ex}")
+        return None
+    print(f"  [sweep] [close-order] {raw[:400]}")
+    return _extract_price(raw)
 
 
 def _update_playbook(entry: dict) -> None:
@@ -103,6 +148,10 @@ def _resolve_predictions() -> None:
 
 
 def run() -> list[dict]:
+    topup = sleeve.apply_topup_if_due()
+    if topup:
+        print(f"  [sweep] sleeve topup applied: +${topup:.2f}")
+
     today = datetime.now(timezone.utc).date()
     closed = []
     for entry in J.open_positions():
@@ -113,9 +162,21 @@ def run() -> list[dict]:
         reason = _should_close(entry, quote, today)
         if not reason:
             continue
-        updated = J.close(entry["id"], exit_price=quote,
+
+        exit_price = quote
+        if entry.get("mode") == "live":
+            fill = _close_live_position(entry)
+            if fill is None:
+                print(f"  [sweep] {entry['id']}: live close order did not go through, "
+                      f"leaving open — will retry next sweep")
+                continue
+            exit_price = fill
+
+        updated = J.close(entry["id"], exit_price=exit_price,
                           reflection=f"Sweep auto-close: {reason}.")
         _update_playbook(updated)
+        if entry.get("mode") == "live":
+            sleeve.record_realized_pnl(updated.get("pnl") or 0.0)
         print(f"  [sweep] closed {entry['id']}: {reason}, pnl={updated.get('pnl')}")
         closed.append(updated)
 

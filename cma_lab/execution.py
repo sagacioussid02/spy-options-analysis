@@ -11,6 +11,7 @@ import json
 import re
 import uuid
 
+import sleeve
 from journal import JournalValidationError, TradeJournal
 from lab import TICKER, account_standing, lab_env, mcp_call_tool
 from risk_gate import APPETITE_PRESETS, evaluate, load_risk_config
@@ -173,9 +174,13 @@ def _extract_price(text: str):
     return float(m.group(1)) if m else None
 
 
-def _live_price():
+def _live_price(symbol: str):
+    """Quote for `symbol` — takes it explicitly rather than defaulting to the
+    global TICKER, since a basket run has multiple entries in flight with
+    different symbols in the same process lifetime (a stale TICKER default
+    here would price one ticker's order off another ticker's quote)."""
     try:
-        return _extract_price(mcp_call_tool("get_equity_quotes", {"symbols": [TICKER]}))
+        return _extract_price(mcp_call_tool("get_equity_quotes", {"symbols": [symbol]}))
     except Exception:  # noqa: BLE001
         return None
 
@@ -218,7 +223,7 @@ def _gate_and_afford(entry: dict) -> tuple[str | None, float]:
     if not decision.allowed:
         return "BLOCKED by risk gate — not executed. Proposal stays pending.", 0.0
 
-    px = entry.get("limit_price") or _live_price() or entry.get("snapshot_price") or 0
+    px = entry.get("limit_price") or _live_price(entry["symbol"]) or entry.get("snapshot_price") or 0
     notional = float(px) * float(entry["quantity"])
     try:
         bp = account_standing(ACCOUNT)["buying_power"]
@@ -244,7 +249,7 @@ def execute_sim(entry: dict) -> str:
     if entry["entry_style"] == "limit" and entry.get("limit_price"):
         fill = entry["limit_price"]
     else:
-        fill = _live_price() or entry.get("limit_price") or entry.get("snapshot_price") or px
+        fill = _live_price(entry["symbol"]) or entry.get("limit_price") or entry.get("snapshot_price") or px
     J.open_sim(entry["id"], fill_price=float(fill), filled_qty=float(entry["quantity"]))
     return (f"SIM fill: {entry['quantity']:g} {entry['symbol']} @ ${float(fill):.2f}. "
             f"Journaled as open (mode=sim).")
@@ -269,7 +274,7 @@ def execute_approved(entry: dict) -> str:
             return f"Pre-trade review failed: {ex}. Proposal stays approved."
         print(f"  [review] {review[:600]}")
         # 2) Typed confirmation — the real-money gate.
-        est = (entry.get("limit_price") or _live_price() or entry.get("snapshot_price") or 0) \
+        est = (entry.get("limit_price") or _live_price(entry["symbol"]) or entry.get("snapshot_price") or 0) \
             * float(entry["quantity"])
         confirm = input(f"  ⚠ PLACE REAL ORDER — {entry['quantity']:g} {entry['symbol']} "
                         f"~${est:.0f}. Type LIVE to confirm: ").strip()
@@ -287,7 +292,7 @@ def execute_approved(entry: dict) -> str:
         if entry["entry_style"] == "limit" and entry.get("limit_price"):
             fill = entry["limit_price"]
         else:
-            fill = _live_price() or entry.get("limit_price") or entry.get("snapshot_price")
+            fill = _live_price(entry["symbol"]) or entry.get("limit_price") or entry.get("snapshot_price")
         mode = "SIMULATED"
 
     J.mark_executed(entry["id"], fill_price=float(fill), filled_qty=float(entry["quantity"]))
@@ -311,7 +316,7 @@ def execute_autonomous(entry: dict) -> str:
     if not ACCOUNT:
         return "No ROBINHOOD_ACCOUNT_NUMBER configured — cannot place a live order."
 
-    est_price = entry.get("limit_price") or _live_price() or entry.get("snapshot_price") or 0
+    est_price = entry.get("limit_price") or _live_price(entry["symbol"]) or entry.get("snapshot_price") or 0
     notional = float(est_price) * float(entry["quantity"])
     if notional > AUTONOMOUS_MAX_NOTIONAL:
         return (f"${notional:.2f} exceeds the ${AUTONOMOUS_MAX_NOTIONAL:.0f} autonomous cap — "
@@ -319,6 +324,18 @@ def execute_autonomous(entry: dict) -> str:
     if float(entry["quantity"]) > LIVE_MAX_SHARES:
         return (f"Live ramp cap: live orders are limited to {LIVE_MAX_SHARES} share(s) — "
                 f"leaving queued for human /approve via advisor.py.")
+
+    # Portfolio-wide exposure cap — a per-order cap alone doesn't stop a
+    # basket of tickers from stacking past the sleeve in aggregate. Valued
+    # at each open live position's own fill price x filled qty (no extra
+    # live-quote calls — this is a cap check, not a mark-to-market).
+    open_notional = sum((e.get("fill_price") or 0) * (e.get("filled_qty") or 0)
+                        for e in J.open_positions() if e.get("mode") == "live")
+    sleeve_cap = sleeve.sleeve_value()
+    if open_notional + notional > sleeve_cap:
+        return (f"Would exceed sleeve exposure cap (open ${open_notional:.2f} + this "
+                f"${notional:.2f} > sleeve ${sleeve_cap:.2f}) — leaving queued for "
+                f"human /approve via advisor.py.")
 
     reason, _px = _gate_and_afford(entry)
     if reason:

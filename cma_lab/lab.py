@@ -57,14 +57,22 @@ def _secrets_store_active() -> bool:
 
 
 def lab_env(key: str, default: Optional[str] = None) -> Optional[str]:
-    """Read a value from the secrets store (Postgres only), then cma_lab/.env,
-    then the OS environment."""
+    """Read a value from the secrets store (Postgres only), then the OS
+    environment, then cma_lab/.env.
+
+    OS env before .env: a real environment variable represents a deliberate
+    per-invocation override (e.g. `TICKER=JPM python committee.py`, which
+    run_basket.sh relies on to run one subprocess per basket ticker) and
+    must win over the file's default — a .env value is a local fallback,
+    not a pin. (This was the reverse order until the basket runner exposed
+    it: every subprocess was silently reading .env's TICKER regardless of
+    what the shell exported.)"""
     import os
     if key in _SECRET_KEYS and _secrets_store_active():
         v = (store().load("secrets", {}) or {}).get(key.lower())
         if v:
             return v
-    return _dotenv().get(key) or os.environ.get(key) or default
+    return os.environ.get(key) or _dotenv().get(key) or default
 
 
 def _save_secret(key: str, value: str) -> None:
@@ -94,12 +102,19 @@ def seed_secrets_from_env() -> list[str]:
     return copied
 
 
-# The single active ticker — one at a time. Set TICKER=<SYM> in cma_lab/.env
-# (or export it) to trade/analyze something other than SPY. Every agent
-# system prompt and risk_gate's symbol_whitelist read this same value, and
-# decision_view.py passes it through when it launches the engine, so the
-# engine and cma_lab never disagree about which ticker is active.
+# The active ticker for THIS process invocation. Set TICKER=<SYM> in
+# cma_lab/.env (or export it) to trade/analyze something other than SPY.
+# Every agent kickoff message and decision_view.py read this same value, so
+# the engine and cma_lab never disagree about which ticker is active this run.
 TICKER = lab_env("TICKER", "SPY")
+
+# The full basket risk_gate's symbol_whitelist allows, across however many
+# separate per-ticker process invocations a basket run loops through (see
+# run_basket.sh). Comma-separated, e.g. TICKER_BASKET=AAPL,JPM,XOM. Defaults
+# to just [TICKER] — an unset TICKER_BASKET changes nothing for a
+# single-ticker setup.
+TICKER_BASKET = [t.strip().upper() for t in
+                 lab_env("TICKER_BASKET", TICKER).split(",") if t.strip()]
 
 
 def _update_env_value(key: str, value: str) -> None:

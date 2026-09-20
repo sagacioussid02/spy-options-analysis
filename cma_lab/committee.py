@@ -160,12 +160,13 @@ def h_regret(_i) -> str:
 
 READ_CUSTOM_TOOLS = [
     {"type": "custom", "name": "get_engine_analysis",
-     "description": f"The {TICKER} engine's latest full analysis (final_decision.json).",
+     "description": "The decision engine's latest full analysis (final_decision.json) "
+                    "for whichever ticker this session's kickoff message names.",
      "input_schema": {"type": "object", "properties": {}, "additionalProperties": False}},
     {"type": "custom", "name": "get_engine_components",
-     "description": f"The {TICKER} engine's INDIVIDUAL component scores and raw market "
-                    "conditions, without the blended verdict. Reason from these, "
-                    "not from a single headline number.",
+     "description": "The decision engine's INDIVIDUAL component scores and raw market "
+                    "conditions for this session's ticker, without the blended verdict. "
+                    "Reason from these, not from a single headline number.",
      "input_schema": {"type": "object", "properties": {}, "additionalProperties": False}},
     {"type": "custom", "name": "get_journal_summary",
      "description": "The desk's track record: win-rate and P&L by strategy, "
@@ -419,7 +420,10 @@ PM_TOOLS = [_read_toolset(), _web_toolset(), *READ_CUSTOM_TOOLS,
            PROPOSE_TOOL, PASS_TOOL, REGISTER_HYPOTHESIS_TOOL, LOG_PREDICTION_TOOL]
 
 BULL_SYSTEM = (
-    f"You are the Bull analyst on a {TICKER} trading desk committee. Build the "
+    "You are the Bull analyst on this trading desk's committee. The desk "
+    "trades a basket of names across sectors, not one fixed ticker — the "
+    "specific ticker for this session is stated in your kickoff message, "
+    "not baked into these instructions; always work off that one. Build the "
     "strongest HONEST case FOR a trade. The engine's blended verdict is "
     "EVIDENCE you weigh, never a checklist you must satisfy — you may build a "
     "case even where it's neutral or bearish, as long as you say why, using "
@@ -436,7 +440,10 @@ BULL_SYSTEM = (
 )
 
 BEAR_SYSTEM = (
-    f"You are the Bear analyst on a {TICKER} trading desk committee. You will be "
+    "You are the Bear analyst on this trading desk's committee. The desk "
+    "trades a basket of names across sectors, not one fixed ticker — the "
+    "specific ticker for this session is named in the Bull's case and the "
+    "kickoff message, not baked into these instructions. You will be "
     "given the Bull's full case in your first message. Attack its strongest "
     "points with evidence (engine components, journal base rates, regret "
     "stats, web_search) — cite specifics, don't just express skepticism. If "
@@ -449,7 +456,10 @@ BEAR_SYSTEM = (
 )
 
 PM_SYSTEM = (
-    f"You are the Portfolio Manager for {TICKER}. You will be given the Bull case, the Bear "
+    "You are the Portfolio Manager for this desk, which trades a basket of "
+    "names across sectors, not one fixed ticker — the specific ticker for "
+    "this session is named in the Bull/Bear cases and the kickoff message, "
+    "not baked into these instructions. You will be given the Bull case, the Bear "
     "case, this session's desk-activity status, and regret stats (whether "
     "recent passes would have profited) in your first message. Decide: "
     "propose_trade OR pass_with_reason. The engine score and either persona's "
@@ -470,7 +480,8 @@ PM_SYSTEM = (
     "persona) AND a debate track record (how often bull_right vs bear_right "
     "graded historically) — weight bull vs bear by both under disagreement, "
     "not by who sounds more confident. You'll also see the Futurist's theses "
-    f"index; a strengthening long-horizon view can support a same-day {TICKER} case. "
+    "index; a strengthening long-horizon view can support a same-day case for "
+    "this session's ticker. "
     "Log at least one falsifiable prediction with "
     "log_prediction before you finish, win or pass."
 )
@@ -499,18 +510,18 @@ def _deploy(name: str, model: str, system: str, tools: list,
 
 
 def deploy_bull() -> str:
-    return _deploy(f"{TICKER} Committee — Bull", MODEL, BULL_SYSTEM, BULL_TOOLS,
-                   "bull_agent_id", "bull_agent_spec", 1)
+    return _deploy("Committee — Bull", MODEL, BULL_SYSTEM, BULL_TOOLS,
+                   "bull_agent_id", "bull_agent_spec", 2)
 
 
 def deploy_bear() -> str:
-    return _deploy(f"{TICKER} Committee — Bear", MODEL, BEAR_SYSTEM, BEAR_TOOLS,
-                   "bear_agent_id", "bear_agent_spec", 1)
+    return _deploy("Committee — Bear", MODEL, BEAR_SYSTEM, BEAR_TOOLS,
+                   "bear_agent_id", "bear_agent_spec", 2)
 
 
 def deploy_pm() -> str:
-    return _deploy(f"{TICKER} Committee — PM", MODEL, PM_SYSTEM, PM_TOOLS,
-                   "pm_agent_id", "pm_agent_spec", 1)
+    return _deploy("Committee — PM", MODEL, PM_SYSTEM, PM_TOOLS,
+                   "pm_agent_id", "pm_agent_spec", 2)
 
 
 # ------------------------------ PM tool wrappers (inject debate_id) ----------
@@ -641,6 +652,7 @@ def run_once() -> dict:
 
     print("\n--- BULL ---")
     bull_kickoff = (
+        f"Today's ticker: {TICKER}\n\n"
         f"Open today's {TICKER} committee debate as the Bull. Your accumulated beliefs "
         f"(weigh them, don't just recite):\n{_read_beliefs('bull')}\n\n"
         f"The current hypothesis playbook (trial/active/retired ideas the desk "
@@ -659,6 +671,7 @@ def run_once() -> dict:
 
     print("\n--- BEAR ---")
     bear_kickoff = (
+        f"Today's ticker: {TICKER}\n\n"
         f"Your beliefs (weigh, don't just recite):\n{_read_beliefs('bear')}\n\n"
         f"The current hypothesis playbook:\n{playbook_view}\n\n"
         f"{theses_view}\n\n"
@@ -676,6 +689,7 @@ def run_once() -> dict:
 
     print("\n--- PM ---")
     pm_kickoff = (
+        f"Today's ticker: {TICKER}\n\n"
         f"Your beliefs (weigh, don't just recite):\n{_read_beliefs('pm')}\n\n"
         f"The current hypothesis playbook:\n{playbook_view}\n\n"
         f"{theses_view}\n\n"
@@ -712,6 +726,7 @@ def run_once() -> dict:
 
     debate = {
         "id": debate_id,
+        "ticker": TICKER,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "engine_snapshot": engine_snapshot,
         "bull_case": bull_case,

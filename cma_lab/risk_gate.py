@@ -20,7 +20,7 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from lab import lab_env
+from lab import TICKER_BASKET, lab_env
 from store import store
 
 # The single active ticker (see lab.py) — same env/`.env` lookup lab.py's
@@ -38,7 +38,7 @@ class RiskConfig:
     """Hard limits. Tune per your risk tolerance; these are conservative."""
     kill_switch: bool = False              # True => block ALL order activity
     equity_only: bool = True               # True => block ALL option order tools (stocks only)
-    symbol_whitelist: tuple = (TICKER,)    # only these underlyings may be traded
+    symbol_whitelist: tuple = tuple(TICKER_BASKET)  # only these underlyings may be traded
     allowed_sides: tuple = ("buy",)        # long-only (Robinhood agentic = long only anyway)
     max_quantity: float = 5                # max contracts (options) or shares (equity) per order
     max_notional_per_order: float = 1500.0 # $ cap when price is known
@@ -134,6 +134,29 @@ def evaluate(tool_name: str, tool_input: dict, cfg: RiskConfig) -> RiskDecision:
     if reasons:
         return RiskDecision(False, reasons)
     return RiskDecision(True, [f"{tool_name} passes all hard limits"])
+
+
+def evaluate_close(symbol: str, quantity: float, cfg: RiskConfig) -> RiskDecision:
+    """Gate for sweep.py's deterministic real sell order that closes an
+    already-open live position at its stop/target/time_stop. Deliberately
+    NOT the same path evaluate() uses for opening orders: allowed_sides is
+    hard-locked to buy-only (see RiskConfig) so no LLM-callable tool can
+    ever place a sell — this exists only for the host-side, non-LLM close
+    path, and only checks the two things that actually matter for closing
+    a position you already hold: the kill switch, and that you're not
+    somehow trying to sell more than the hard per-order ceiling allows."""
+    if cfg.kill_switch:
+        return RiskDecision(False, ["KILL SWITCH active — all order activity blocked"])
+    symbol = (symbol or "").upper()
+    whitelist = {s.upper() for s in cfg.symbol_whitelist}
+    if not symbol or symbol not in whitelist:
+        return RiskDecision(False, [f"symbol {symbol!r} not in whitelist {sorted(whitelist)}"])
+    qty = _num(quantity)
+    if qty is None or qty <= 0:
+        return RiskDecision(False, [f"quantity {quantity!r} must be a positive number"])
+    if qty > HARD_MAX_QUANTITY:
+        return RiskDecision(False, [f"quantity {qty:g} exceeds hard ceiling {HARD_MAX_QUANTITY:g}"])
+    return RiskDecision(True, ["closing sell passes kill-switch + whitelist + quantity checks"])
 
 
 # ===================== runtime overrides (copilot-tweakable) =================
