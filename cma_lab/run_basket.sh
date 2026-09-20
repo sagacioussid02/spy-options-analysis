@@ -15,7 +15,7 @@ cd "$REPO"
 mkdir -p cma_lab/briefings
 LOG="cma_lab/briefings/$(date +%Y-%m-%d).txt"
 
-BASKET="${TICKER_BASKET:-AAPL,JPM,XOM}"
+BASKET="${TICKER_BASKET:-AAPL,JPM,XOM,TQQQ,SOXL,SPXL}"
 
 {
   echo "===== basket run @ $(date '+%Y-%m-%d %H:%M:%S %Z') — basket: $BASKET ====="
