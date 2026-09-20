@@ -626,7 +626,7 @@ def _run_session(agent_id: str, env_id: str, vault_id: str, *, title: str,
                     continue
                 print()
                 break
-    report_cost(session.id, model=MODEL)
+    report_cost(session.id, model=MODEL, label=f"{TICKER}:{title}")
     return session.id, captured
 
 

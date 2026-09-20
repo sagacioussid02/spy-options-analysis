@@ -245,13 +245,17 @@ MODEL_PRICES = {
 }
 
 
-def report_cost(session_id: str, model: str = "claude-haiku-4-5") -> float:
-    """Print this session's token usage and an estimated USD cost. Returns the
-    estimate. Reads usage off the session object after it goes idle."""
+def report_cost(session_id: str, model: str = "claude-haiku-4-5", label: str = "") -> float:
+    """Print this session's token usage and an estimated USD cost, and persist
+    a row to the "usage_log" collection so it can be reviewed later instead
+    of only ever appearing in a scrollback log. Returns the estimate. Reads
+    usage off the session object after it goes idle."""
     try:
         s = client().beta.sessions.retrieve(session_id)
         usage = getattr(s, "usage", None)
         u = usage.to_dict() if hasattr(usage, "to_dict") else (dict(usage) if usage else {})
+        stats = getattr(s, "stats", None)
+        stats_d = stats.to_dict() if hasattr(stats, "to_dict") else (dict(stats) if stats else {})
     except Exception as e:  # noqa: BLE001
         print(f"[cost] could not fetch usage: {e}")
         return 0.0
@@ -271,6 +275,26 @@ def report_cost(session_id: str, model: str = "claude-haiku-4-5") -> float:
     print(f"[cost] {model}: input {fresh_in} fresh + {cache_read} cached + "
           f"{cache_write} written, output {out}")
     print(f"[cost] estimated this run: ${cost:.4f}")
+
+    try:
+        from datetime import datetime, timezone
+        log = store().load("usage_log", []) or []
+        log.append({
+            "at": datetime.now(timezone.utc).isoformat(),
+            "session_id": session_id,
+            "model": model,
+            "label": label,
+            "fresh_in": fresh_in,
+            "cache_read": cache_read,
+            "cache_write": cache_write,
+            "output": out,
+            "cost": round(cost, 6),
+            "active_seconds": stats_d.get("active_seconds"),
+        })
+        store().save("usage_log", log)
+    except Exception as e:  # noqa: BLE001
+        print(f"[cost] could not persist usage_log row: {e}")
+
     return cost
 
 

@@ -338,7 +338,7 @@ def main() -> None:
             break
         print()
 
-    report_cost(session.id, model=MODEL)
+    report_cost(session.id, model=MODEL, label=f"{TICKER}:copilot chat")
 
 
 if __name__ == "__main__":

@@ -137,7 +137,7 @@ def propose(state: AdvisorState) -> dict:
     print("advisor> ", end="", flush=True)
     run_turn(session.id, state.get("kickoff_text") or KICKOFF)
     print()
-    report_cost(session.id, model=MODEL)
+    report_cost(session.id, model=MODEL, label=f"{TICKER}:graph advisor run")
 
     after = J.pending_proposals()
     new_ids = [e["id"] for e in after if e["id"] not in before]

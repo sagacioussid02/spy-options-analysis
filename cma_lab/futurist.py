@@ -342,7 +342,7 @@ def run_futurist(agent_id: str) -> None:
 
     print("\n--- theses index ---")
     print(theses_index_text())
-    report_cost(session.id, model=MODEL)
+    report_cost(session.id, model=MODEL, label=f"{TICKER}:futurist run")
 
 
 def main() -> None:

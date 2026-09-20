@@ -18,6 +18,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import events
 from store import store
 
 _COLLECTION = "sleeve"
@@ -63,6 +64,8 @@ def apply_topup_if_due() -> Optional[float]:
     state["realized_pnl_since_topup"] = 0.0
     state["last_topup_at"] = _now()
     store().save(_COLLECTION, state)
+    if topup > 0:
+        events.log_event("sleeve_topup", amount=topup, new_base=round(state["base"], 2))
     return topup
 
 

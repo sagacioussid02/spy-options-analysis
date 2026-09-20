@@ -367,7 +367,7 @@ def main() -> None:
             print("[session ended]"); break
         print()
 
-    report_cost(session.id, model=MODEL)
+    report_cost(session.id, model=MODEL, label="advisor desk")
 
 
 if __name__ == "__main__":

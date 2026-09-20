@@ -214,7 +214,7 @@ def run_sweep(agent_id: str) -> None:
         for c_ in bh.get(hz, []):
             print(f"  {c_['symbol']:<6} {c_['sector']:<22} conv {c_['conviction']:.2f} "
                   f"[{c_['catalyst_type']}] {c_['thesis'][:90]}")
-    report_cost(session.id, model=MODEL)
+    report_cost(session.id, model=MODEL, label="radar sweep")
 
 
 def main() -> None:

@@ -483,7 +483,7 @@ def run_reflection(agent_id: str) -> None:
         for s in sugg:
             if s.get("status") == "suggested":
                 print(f"  {s['parameter']} -> {s['value']}  ({s['rationale']})")
-    report_cost(session.id, model=MODEL)
+    report_cost(session.id, model=MODEL, label="reflection")
 
 
 def main() -> None:

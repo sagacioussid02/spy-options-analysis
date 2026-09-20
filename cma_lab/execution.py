@@ -11,6 +11,7 @@ import json
 import re
 import uuid
 
+import events
 import sleeve
 from journal import JournalValidationError, TradeJournal
 from lab import TICKER, account_standing, lab_env, mcp_call_tool
@@ -333,6 +334,8 @@ def execute_autonomous(entry: dict) -> str:
                         for e in J.open_positions() if e.get("mode") == "live")
     sleeve_cap = sleeve.sleeve_value()
     if open_notional + notional > sleeve_cap:
+        events.log_event("cap_blocked", symbol=entry["symbol"], notional=round(notional, 2),
+                         open_notional=round(open_notional, 2), sleeve_value=round(sleeve_cap, 2))
         return (f"Would exceed sleeve exposure cap (open ${open_notional:.2f} + this "
                 f"${notional:.2f} > sleeve ${sleeve_cap:.2f}) — leaving queued for "
                 f"human /approve via advisor.py.")

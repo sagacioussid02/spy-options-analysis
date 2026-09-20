@@ -103,6 +103,7 @@ class Playbook:
             trailing.append(pnl)
             e["trailing_pnls"] = trailing[-e["min_trials"]:]
 
+            old_status = e["status"]
             n, min_trials = e["trials"]["n"], e["min_trials"]
             if n >= min_trials:
                 trailing_sum = sum(e["trailing_pnls"])
@@ -112,6 +113,11 @@ class Playbook:
                 elif e["status"] == "trial" and e["trials"]["pnl"] > 0 and win_rate >= 0.5:
                     e["status"] = "active"
             self._save(entries)
+            if e["status"] != old_status:
+                from events import log_event
+                log_event("hypothesis_status_change", hypothesis_id=e["id"], name=e["name"],
+                          from_status=old_status, to_status=e["status"],
+                          n=e["trials"]["n"], pnl=e["trials"]["pnl"])
             return
 
     def context_view(self) -> str:

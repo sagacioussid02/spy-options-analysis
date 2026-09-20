@@ -126,7 +126,7 @@ def main() -> None:
     )
 
     print("\n" + "=" * 64)
-    report_cost(session.id, model="claude-haiku-4-5")
+    report_cost(session.id, model="claude-haiku-4-5", label=f"{TICKER}:decision_view")
     print("Engine said WHAT to consider; the agent grounded it in your LIVE "
           "account + market. Your call.")
 

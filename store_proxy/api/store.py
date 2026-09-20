@@ -5,10 +5,19 @@ internet over HTTPS but not raw Postgres TCP.
 
 Mirrors cma_lab/store.py's PostgresStore exactly: same table
 (collections(name text primary key, data jsonb not null, updated_at
-timestamptz)), same INSERT ... ON CONFLICT upsert. Auth is a single bearer
-token (STORE_PROXY_TOKEN) checked before any database access — every
-collection (including "secrets", which holds live Robinhood tokens) is
-reachable through this token, so treat it as sensitive as DATABASE_URL.
+timestamptz)), same INSERT ... ON CONFLICT upsert. Auth is a bearer token, one of two kinds:
+  - STORE_PROXY_TOKEN: full read+write, every collection (including
+    "secrets", which holds live Robinhood tokens) reachable — treat it as
+    sensitive as DATABASE_URL. Used server-side by cma_lab's HttpProxyStore.
+  - STORE_PROXY_READONLY_TOKEN: GET only, PUT always 403 regardless of
+    which collection. Safe to embed in a published artifact's client-side
+    JS (e.g. the Desk Report page fetching journal/playbook/sleeve/events/
+    usage_log directly from the browser) since a leaked copy can only ever
+    read, never write fake journal entries or flip risk_overrides.
+
+CORS is open (Access-Control-Allow-Origin: *) on GET/OPTIONS only, so a
+browser page on a different origin can read with the readonly token; PUT
+gets no CORS headers since it's never meant to be called from a browser.
 
 No cross-request locking: this is a stateless function, so PostgresStore's
 pg_advisory_lock (held across one load+save) doesn't translate here. Fine
@@ -43,16 +52,25 @@ def _conn():
 
 
 class handler(BaseHTTPRequestHandler):
-    def _authorized(self) -> bool:
+    def _write_authorized(self) -> bool:
         want = os.environ.get("STORE_PROXY_TOKEN", "")
         got = self.headers.get("Authorization", "")
         return bool(want) and got == f"Bearer {want}"
 
-    def _send(self, status: int, body: dict) -> None:
+    def _read_authorized(self) -> bool:
+        if self._write_authorized():
+            return True
+        want_ro = os.environ.get("STORE_PROXY_READONLY_TOKEN", "")
+        got = self.headers.get("Authorization", "")
+        return bool(want_ro) and got == f"Bearer {want_ro}"
+
+    def _send(self, status: int, body: dict, cors: bool = False) -> None:
         payload = json.dumps(body).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(payload)))
+        if cors:
+            self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(payload)
 
@@ -61,24 +79,31 @@ class handler(BaseHTTPRequestHandler):
         vals = qs.get("name")
         return vals[0] if vals else None
 
+    def do_OPTIONS(self) -> None:
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
+        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.end_headers()
+
     def do_GET(self) -> None:
-        if not self._authorized():
-            self._send(401, {"error": "unauthorized"}); return
+        if not self._read_authorized():
+            self._send(401, {"error": "unauthorized"}, cors=True); return
         name = self._name()
         if not name:
-            self._send(400, {"error": "missing name"}); return
+            self._send(400, {"error": "missing name"}, cors=True); return
         try:
             with _conn() as conn:
                 row = conn.execute(
                     "SELECT data FROM collections WHERE name = %s", (name,)
                 ).fetchone()
-            self._send(200, {"data": row[0] if row else None})
+            self._send(200, {"data": row[0] if row else None}, cors=True)
         except Exception as ex:  # noqa: BLE001
-            self._send(500, {"error": str(ex)})
+            self._send(500, {"error": str(ex)}, cors=True)
 
     def do_PUT(self) -> None:
-        if not self._authorized():
-            self._send(401, {"error": "unauthorized"}); return
+        if not self._write_authorized():
+            self._send(403 if self._read_authorized() else 401, {"error": "unauthorized"}); return
         name = self._name()
         if not name:
             self._send(400, {"error": "missing name"}); return
