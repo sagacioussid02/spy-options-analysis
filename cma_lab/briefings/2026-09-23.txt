@@ -1,0 +1,148 @@
+===== decision view @ 2026-09-23 08:45:04 MDT =====
+WARNING:utils.data_fetcher:Failed to fetch from APIs. Using mock headlines.
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 7aa209cc-b24c-468d-be6f-bb3936710161)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 7aa209cc-b24c-468d-be6f-bb3936710161)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+Retrying in 1s [Retry 1/5].
+WARNING:huggingface_hub.utils._http:Retrying in 1s [Retry 1/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 59639bce-e06f-481d-9225-54320a893999)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 59639bce-e06f-481d-9225-54320a893999)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+Retrying in 2s [Retry 2/5].
+WARNING:huggingface_hub.utils._http:Retrying in 2s [Retry 2/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 53ca0785-160c-4554-8423-e9766b91176e)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 53ca0785-160c-4554-8423-e9766b91176e)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+Retrying in 4s [Retry 3/5].
+WARNING:huggingface_hub.utils._http:Retrying in 4s [Retry 3/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 5d5b3710-fb0c-4a84-bb69-d3d7d61f7a88)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 5d5b3710-fb0c-4a84-bb69-d3d7d61f7a88)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+Retrying in 8s [Retry 4/5].
+WARNING:huggingface_hub.utils._http:Retrying in 8s [Retry 4/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 6c3c4405-07f8-4986-8979-c542cd0d59ac)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 6c3c4405-07f8-4986-8979-c542cd0d59ac)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+Retrying in 8s [Retry 5/5].
+WARNING:huggingface_hub.utils._http:Retrying in 8s [Retry 5/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: f5b9beeb-28a5-4ef9-b280-03f78ac8ca72)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/tokenizer_config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: f5b9beeb-28a5-4ef9-b280-03f78ac8ca72)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/tokenizer_config.json
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 4a09c4d6-b8e9-4393-a342-c2057e9f3e9b)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 4a09c4d6-b8e9-4393-a342-c2057e9f3e9b)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+Retrying in 1s [Retry 1/5].
+WARNING:huggingface_hub.utils._http:Retrying in 1s [Retry 1/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 005679fb-2ed6-430a-a3ca-252d7114a759)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 005679fb-2ed6-430a-a3ca-252d7114a759)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+Retrying in 2s [Retry 2/5].
+WARNING:huggingface_hub.utils._http:Retrying in 2s [Retry 2/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 7bd40a46-35ad-436d-ae4d-536db5c9067c)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 7bd40a46-35ad-436d-ae4d-536db5c9067c)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+Retrying in 4s [Retry 3/5].
+WARNING:huggingface_hub.utils._http:Retrying in 4s [Retry 3/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: ffe38e4b-bdd1-4cf7-bf85-9c61854c36b2)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: ffe38e4b-bdd1-4cf7-bf85-9c61854c36b2)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+Retrying in 8s [Retry 4/5].
+WARNING:huggingface_hub.utils._http:Retrying in 8s [Retry 4/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 84529477-a6a5-4354-abf3-a1dbb8e0a8a7)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 84529477-a6a5-4354-abf3-a1dbb8e0a8a7)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+Retrying in 8s [Retry 5/5].
+WARNING:huggingface_hub.utils._http:Retrying in 8s [Retry 5/5].
+'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 190418d4-6eda-41b1-a193-d31bc1fb1a6c)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /ProsusAI/finbert/resolve/main/config.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 8] nodename nor servname provided, or not known)"))'), '(Request ID: 190418d4-6eda-41b1-a193-d31bc1fb1a6c)')' thrown while requesting HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json
+======================================================================
+SPY OPTIONS DECISION ENGINE
+Local Analysis | January 6, 2026
+======================================================================
+
+📊 Stage 1: Market Analysis
+----------------------------------------------------------------------
+✓ Market Snapshot report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/snapshot.json
+  (skipped: alignment is index-only, AAPL is not an index)
+
+✓ FinBert model loaded successfully
+  Analyzing direct FinBert sentiment for mentioned stocks...
+    Querying AAPL... ERROR:utils.data_fetcher:Error fetching historical SPY data: 'NoneType' object is not subscriptable
+WARNING:utils.data_fetcher:Error fetching VIX: 'NoneType' object is not subscriptable
+WARNING:utils.data_fetcher:Error fetching VIX: 'NoneType' object is not subscriptable
+WARNING:utils.data_fetcher:Error calculating IV percentile: Failed to perform, curl: (6) Could not resolve host: query1.finance.yahoo.com. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+WARNING:utils.data_fetcher:Error fetching option chain: Failed to perform, curl: (6) Could not resolve host: query1.finance.yahoo.com. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+✓
+✓ News Sentiment report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/sentiment.json
+
+✓ SPY Momentum report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/momentum.json
+
+📊 Stage 1.6: Event-Driven Analysis
+----------------------------------------------------------------------
+
+📰 EVENT-DRIVEN ENGINE
+----------------------------------------------------------------------
+  (skipped: event impact weighting is index-only, AAPL is not an index)
+
+📊 Stage 1.5: Price Analysis
+----------------------------------------------------------------------
+✓ Price Analysis report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/price_analysis.json
+
+📊 Stage 2: Momentum Gate Check
+----------------------------------------------------------------------
+✅ MOMENTUM CONDITIONS MET - Proceeding to Stage 2
+
+📊 Stage 3: Options Analysis
+----------------------------------------------------------------------
+✓ Volatility Filter report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/volatility.json
+
+✓ Options What-If report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/options.json
+
+📊 Stage 4: Final Decision
+----------------------------------------------------------------------
+✓ Final Decision report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/final_decision.json
+
+======================================================================
+DECISION SUMMARY
+======================================================================
+Final Score: 100/100
+Decision: BUY SMALL
+Confidence: HIGH
+
+Reasoning:
+  • SPY momentum is bullish (EMA + VWAP aligned)
+  • Top holdings showing divergence
+  • News sentiment is strongly positive
+  • Volatility environment is favorable for options
+
+All reports saved to /reports directory
+
+✓ Decision saved to database
+
+🎨 Updating dashboard...
+✓ Dashboard updated: /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/dashboard.html
+✓ Dashboard ready at: /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/dashboard.html
+
+[engine] running spy_decision_engine/main.py (this can take a while)...
+================================================================
+DECISION VIEW
+================================================================
+ENGINE SIGNAL (from final_decision.json)
+  decision : BUY SMALL  (score 100, confidence HIGH)
+  snapshot : SPY $692.0 at   (trend BULLISH)
+  intent   : buy 1 AAPL limit @ $687.1  (TP $693.2, stop $666.49)
+----------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/decision_view.py", line 135, in <module>
+    main()
+    ~~~~^^
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/decision_view.py", line 105, in main
+    agent_id = deploy_agent()  # ensure the hosted read-only agent exists
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/chunk6_read_agent.py", line 80, in deploy_agent
+    state = load_state()
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/lab.py", line 196, in load_state
+    return store().load("cma_state", {}) or {}
+           ~~~~~^^
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/store.py", line 264, in store
+    _store = PostgresStore(dsn) if dsn else JsonFileStore()
+             ~~~~~~~~~~~~~^^^^^
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/store.py", line 146, in __init__
+    with self._conn() as conn:
+         ~~~~~~~~~~^^
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/store.py", line 156, in _conn
+    return self._psycopg.connect(self.dsn)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/psycopg/connection.py", line 100, in connect
+    attempts = conninfo_attempts(params)
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/psycopg/_conninfo_attempts.py", line 55, in conninfo_attempts
+    raise last_exc
+psycopg.OperationalError: failed to resolve host 'ep-fancy-wave-avq6oj68-pooler.c-11.us-east-1.aws.neon.tech': [Errno 8] nodename nor servname provided, or not known

@@ -1,0 +1,101 @@
+===== decision view @ 2026-09-25 08:49:48 MDT =====
+======================================================================
+SPY OPTIONS DECISION ENGINE
+Local Analysis | January 6, 2026
+======================================================================
+
+📊 Stage 1: Market Analysis
+----------------------------------------------------------------------
+✓ Market Snapshot report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/snapshot.json
+  (skipped: alignment is index-only, AAPL is not an index)
+
+✓ FinBert model loaded successfully
+  Analyzing direct FinBert sentiment for mentioned stocks...
+    Querying AAPL... WARNING:utils.data_fetcher:Expiry 2026-01-09 not available for AAPL. Using nearest expiry.
+✓
+✓ News Sentiment report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/sentiment.json
+
+✓ SPY Momentum report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/momentum.json
+
+📊 Stage 1.6: Event-Driven Analysis
+----------------------------------------------------------------------
+
+📰 EVENT-DRIVEN ENGINE
+----------------------------------------------------------------------
+  (skipped: event impact weighting is index-only, AAPL is not an index)
+
+📊 Stage 1.5: Price Analysis
+----------------------------------------------------------------------
+✓ Price Analysis report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/price_analysis.json
+
+📊 Stage 2: Momentum Gate Check
+----------------------------------------------------------------------
+✅ MOMENTUM CONDITIONS MET - Proceeding to Stage 2
+
+📊 Stage 3: Options Analysis
+----------------------------------------------------------------------
+✓ Volatility Filter report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/volatility.json
+
+✓ Options What-If report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/options.json
+
+📊 Stage 4: Final Decision
+----------------------------------------------------------------------
+✓ Final Decision report written to /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/final_decision.json
+
+======================================================================
+DECISION SUMMARY
+======================================================================
+Final Score: 100/100
+Decision: BUY SMALL
+Confidence: HIGH
+
+Reasoning:
+  • SPY momentum is bullish (EMA + VWAP aligned)
+  • Top holdings showing divergence
+  • News sentiment is strongly positive
+  • Volatility environment is favorable for options
+
+All reports saved to /reports directory
+
+✓ Decision saved to database
+
+🎨 Updating dashboard...
+✓ Dashboard updated: /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/dashboard.html
+✓ Dashboard ready at: /Users/siddharthshankar/workspace/spy/spy_decision_engine/reports/dashboard.html
+
+[engine] running spy_decision_engine/main.py (this can take a while)...
+================================================================
+DECISION VIEW
+================================================================
+ENGINE SIGNAL (from final_decision.json)
+  decision : BUY SMALL  (score 100, confidence HIGH)
+  snapshot : SPY $338.05 at   (trend BULLISH)
+  intent   : buy 1 AAPL limit @ $334.53  (TP $338.22, stop $324.49)
+----------------------------------------------------------------
+[deploy] read agent already hosted: agent_0168hp2GEqSPTGP4iuNXRhNW
+Traceback (most recent call last):
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/decision_view.py", line 135, in <module>
+    main()
+    ~~~~^^
+  File "/Users/siddharthshankar/workspace/spy/cma_lab/decision_view.py", line 111, in main
+    session = client().beta.sessions.create(
+        agent=agent_id,
+    ...<2 lines>...
+        title="decision view",
+    )
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/anthropic/resources/beta/sessions/sessions.py", line 146, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/v1/sessions?beta=true",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<14 lines>...
+        cast_to=BetaManagedAgentsSession,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/anthropic/_base_client.py", line 1374, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/siddharthshankar/workspace/spy/.venv/lib/python3.13/site-packages/anthropic/_base_client.py", line 1147, in request
+    raise self._make_status_error_from_response(err.response) from None
+anthropic.BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CfQP45gPa5D8EwhoDqrFW'}

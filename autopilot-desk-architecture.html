@@ -1,0 +1,484 @@
+<!doctype html>
+<title>Autopilot Desk Architecture</title>
+<style>
+:root{
+  --bg:#f7f7f4;
+  --surface:#ffffff;
+  --surface-2:#eef0ea;
+  --ink:#1b2019;
+  --ink-soft:#464d43;
+  --muted:#6b7266;
+  --line:#d8dbd0;
+  --accent:#a8671f;      /* amber — the money-moving / gated paths */
+  --accent-soft:#f1e2c9;
+  --blocked:#9c4a3c;     /* muted rust — the path that does not work */
+  --blocked-soft:#f3e2dd;
+  --ok:#3f7a5e;          /* muted teal-green — read-only / allowed paths */
+  --ok-soft:#e2ece5;
+  --warn:#8a6d1e;
+  --warn-soft:#f4ecd2;
+  --font-display:"Fraunces",Georgia,"Iowan Old Style",serif;
+  --font-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10130f;
+    --surface:#191d16;
+    --surface-2:#20241c;
+    --ink:#eceee7;
+    --ink-soft:#c3c8bb;
+    --muted:#8b9284;
+    --line:#333829;
+    --accent:#e0a655;
+    --accent-soft:#3a2f1a;
+    --blocked:#e08d7c;
+    --blocked-soft:#3a231f;
+    --ok:#7fc4a2;
+    --ok-soft:#1d2d24;
+    --warn:#dcb75c;
+    --warn-soft:#332b16;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10130f;
+  --surface:#191d16;
+  --surface-2:#20241c;
+  --ink:#eceee7;
+  --ink-soft:#c3c8bb;
+  --muted:#8b9284;
+  --line:#333829;
+  --accent:#e0a655;
+  --accent-soft:#3a2f1a;
+  --blocked:#e08d7c;
+  --blocked-soft:#3a231f;
+  --ok:#7fc4a2;
+  --ok-soft:#1d2d24;
+  --warn:#dcb75c;
+  --warn-soft:#332b16;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.55;
+  padding-inline:20px;
+}
+.wrap{max-width:1060px;margin-inline:auto;padding-block:56px 80px}
+code{font-family:var(--font-mono)}
+
+/* ---------- header ---------- */
+header{margin-bottom:44px}
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:0 0 14px;
+}
+h1{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:clamp(30px,4.6vw,42px);
+  line-height:1.08;
+  letter-spacing:-.01em;
+  margin:0 0 16px;
+  text-wrap:balance;
+}
+.lede{
+  font-size:17px;
+  color:var(--ink-soft);
+  max-width:70ch;
+  margin:0 0 22px;
+}
+.status-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.pill{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--font-mono);font-size:12.5px;
+  padding:6px 12px;border-radius:100px;
+  border:1px solid var(--line);background:var(--surface);
+  color:var(--ink-soft);
+}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.pill.warn{border-color:color-mix(in srgb, var(--warn) 40%, var(--line));color:var(--warn)}
+.pill.warn .dot{background:var(--warn)}
+
+/* ---------- section scaffolding ---------- */
+section{margin-block:50px}
+h2{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:23px;
+  margin:0 0 6px;
+  letter-spacing:-.005em;
+}
+.section-note{color:var(--muted);font-size:14.5px;margin:0 0 20px;max-width:74ch}
+
+/* ---------- diagram figure ---------- */
+figure{margin:0}
+.diagram-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:22px 22px 8px;
+  overflow-x:auto;
+}
+svg{display:block;width:100%;height:auto;min-width:720px}
+figcaption{
+  font-size:13.5px;color:var(--muted);
+  margin-top:14px;padding-block:2px 4px;
+  max-width:78ch;
+}
+.legend{
+  display:flex;flex-wrap:wrap;gap:18px;
+  margin-top:16px;padding-top:16px;border-top:1px solid var(--line);
+  font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft);
+}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend .swatch{width:16px;height:2.5px;border-radius:2px}
+.legend .swatch.dash{background:none;border-top:2px dashed var(--blocked)}
+
+/* ---------- stack grid ---------- */
+.stack-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:1px;
+  background:var(--line);
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+}
+.stack-card{background:var(--surface);padding:20px 22px}
+.stack-card .layer{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 6px;
+}
+.stack-card h3{
+  font-family:var(--font-mono);font-size:14.5px;font-weight:500;
+  color:var(--ink);margin:0 0 8px;
+}
+.stack-card p{margin:0;color:var(--ink-soft);font-size:14px}
+.stack-card .why{
+  margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);
+  font-size:13px;color:var(--muted);
+}
+.stack-card .why b{color:var(--ink-soft);font-weight:600}
+@media (max-width:680px){.stack-grid{grid-template-columns:1fr}}
+
+/* ---------- expect grid ---------- */
+.expect-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:1px;
+  background:var(--line);
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+}
+.expect-card{background:var(--surface);padding:20px 22px}
+.expect-card h3{
+  font-family:var(--font-mono);
+  font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 9px;
+}
+.expect-card p{margin:0;color:var(--ink-soft);font-size:14.5px}
+.expect-card p + p{margin-top:8px}
+.expect-card.accent{background:var(--accent-soft)}
+.expect-card.accent h3{color:var(--accent)}
+.expect-card.accent p{color:var(--ink)}
+.expect-card.warn{background:var(--warn-soft)}
+.expect-card.warn h3{color:var(--warn)}
+.expect-card.warn p{color:var(--ink)}
+@media (max-width:620px){.expect-grid{grid-template-columns:1fr}}
+
+/* ---------- component table ---------- */
+.comp-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.comp-table th{
+  text-align:left;font-family:var(--font-mono);font-size:11px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  font-weight:500;padding:0 14px 10px 0;border-bottom:1px solid var(--line);
+  white-space:nowrap;
+}
+.comp-table td{padding:12px 14px 12px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-table .name{font-family:var(--font-mono);font-size:13px;color:var(--ink);white-space:nowrap}
+.comp-table .proto{font-family:var(--font-mono);font-size:12px;color:var(--muted);white-space:nowrap}
+.comp-table .role{color:var(--ink-soft)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:6px 18px}
+
+footer{
+  margin-top:56px;padding-top:24px;border-top:1px solid var(--line);
+  font-size:13.5px;color:var(--muted);
+}
+footer code{color:var(--ink-soft)}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">System reference — cma_lab / spy-options-analysis</p>
+    <h1>Autopilot desk: architecture and constraints</h1>
+    <p class="lede">A cron-triggered CCR session runs a deterministic engine, a three-agent debate, and (conditionally) a live order — all through an egress-restricted sandbox that can't open a raw TCP socket, which is the constraint that actually shaped this design. Below: the wire-level mechanism, the stack, and what's actually armed right now.</p>
+    <div class="status-row">
+      <span class="pill"><span class="dot"></span>desk-briefing · enabled · <code style="font-family:inherit">45 14 * * 1-5</code> UTC</span>
+      <span class="pill">TICKER=<code style="font-family:inherit">AAPL</code></span>
+      <span class="pill warn"><span class="dot"></span>SPY_LIVE unset — autonomous path disarmed</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Mechanism</h2>
+    <p class="section-note">Three write paths converge on one Postgres instance and one broker. Only one of them is currently live.</p>
+
+    <figure class="diagram-card">
+      <svg viewBox="0 0 1080 760" role="img" aria-label="Diagram: a cron-triggered ephemeral sandbox runs the decision engine over HTTPS to yfinance, and three Claude Managed Agent sessions that debate a trade and read Robinhood via MCP server-side. State writes go through store_proxy, a Vercel Python function, over HTTPS to Neon Postgres, because the sandbox cannot open a direct TCP connection to Postgres on port 5432. A proposal under $30 notional can execute autonomously via execute_autonomous when SPY_LIVE is armed; above that, or unarmed, it queues for a human running advisor.py locally, which is the only interactive, typed-confirmation write path to Robinhood.">
+
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+          <marker id="arrowBlocked" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--blocked)"/>
+          </marker>
+          <marker id="arrowAccent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+          </marker>
+          <marker id="arrowWarn" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--warn)"/>
+          </marker>
+        </defs>
+
+        <!-- lane labels -->
+        <text x="24" y="34" font-family="IBM Plex Mono" font-size="11" letter-spacing="1.3" fill="var(--muted)">CCR SANDBOX — EPHEMERAL, GIT CLONE PER RUN, HTTPS-ONLY EGRESS</text>
+        <text x="24" y="530" font-family="IBM Plex Mono" font-size="11" letter-spacing="1.3" fill="var(--muted)">YOUR MACHINE — UNRESTRICTED NETWORK, INTERACTIVE TTY</text>
+        <line x1="0" y1="508" x2="1080" y2="508" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 4"/>
+
+        <!-- Cron trigger -->
+        <rect x="24" y="52" width="160" height="58" rx="8" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.35"/>
+        <text x="104" y="75" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="currentColor">Claude Code</text>
+        <text x="104" y="90" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="currentColor">routine (CCR)</text>
+        <text x="104" y="103" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">45 14 * * 1-5 UTC</text>
+
+        <line x1="184" y1="81" x2="224" y2="81" stroke="currentColor" marker-end="url(#arrow)"/>
+
+        <!-- Sandbox -->
+        <rect x="228" y="52" width="180" height="58" rx="8" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"/>
+        <text x="318" y="75" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="currentColor">python3.11 venv</text>
+        <text x="318" y="90" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">git clone → cloud_bootstrap.sh</text>
+        <text x="318" y="103" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">Custom network allowlist</text>
+
+        <!-- three branches from sandbox -->
+        <path d="M 318 110 L 318 142 L 130 142 L 130 174" fill="none" stroke="var(--ok)" marker-end="url(#arrow)"/>
+        <text x="224" y="134" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--ok)">https · *.yahoo.com</text>
+
+        <path d="M 318 110 L 318 174" fill="none" stroke="var(--ok)" marker-end="url(#arrow)"/>
+        <text x="328" y="142" font-family="IBM Plex Mono" font-size="10" fill="var(--ok)">https · api.anthropic.com</text>
+
+        <path d="M 318 110 L 318 142 L 670 142 L 670 174" fill="none" stroke="currentColor" marker-end="url(#arrow)"/>
+        <text x="500" y="134" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="currentColor">https · bearer token</text>
+
+        <!-- yfinance -->
+        <rect x="40" y="178" width="180" height="56" rx="8" fill="var(--surface)" stroke="currentColor" stroke-opacity="0.35"/>
+        <text x="130" y="200" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="currentColor">yfinance</text>
+        <text x="130" y="215" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">OHLC + quotes, REST</text>
+
+        <text x="130" y="252" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">→ spy_decision_engine</text>
+        <text x="130" y="265" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">deterministic scoring, no LLM</text>
+
+        <!-- Anthropic API / CMA -->
+        <rect x="215" y="178" width="190" height="56" rx="8" fill="var(--surface)" stroke="currentColor" stroke-opacity="0.35"/>
+        <text x="310" y="200" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="currentColor">Messages API</text>
+        <text x="310" y="215" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">3× CMA sessions, claude-haiku-4-5</text>
+
+        <text x="310" y="252" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">committee.py: Bull → Bear → PM</text>
+        <text x="310" y="265" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">Bear sees only Bull's final case</text>
+
+        <!-- CMA -> Robinhood read (server side) -->
+        <path d="M 405 204 L 900 204 L 900 238" fill="none" stroke="var(--ok)" marker-end="url(#arrow)"/>
+        <text x="650" y="197" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--ok)">reads — quotes / positions / account (vault-proxied cred)</text>
+
+        <!-- store_proxy -->
+        <rect x="580" y="178" width="190" height="56" rx="8" fill="var(--surface)" stroke="currentColor" stroke-opacity="0.35"/>
+        <text x="675" y="200" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="currentColor">store_proxy</text>
+        <text x="675" y="215" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">Vercel · BaseHTTPRequestHandler</text>
+
+        <!-- store_proxy -> Neon -->
+        <path d="M 675 234 L 675 320 L 555 320 L 555 360" fill="none" stroke="currentColor" marker-end="url(#arrow)"/>
+        <text x="675" y="312" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="currentColor">psycopg3 · tcp:5432 (from Vercel)</text>
+
+        <!-- sandbox -> Neon direct BLOCKED -->
+        <path d="M 228 81 L 130 81 L 130 320 L 505 320 L 505 360" fill="none" stroke="var(--blocked)" stroke-dasharray="5 4" marker-end="url(#arrowBlocked)"/>
+        <text x="130" y="335" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--blocked)" transform="rotate(-90 130 335)">psycopg3 direct — hangs, proxy is HTTP-CONNECT only</text>
+
+        <!-- Neon -->
+        <rect x="435" y="362" width="250" height="62" rx="8" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.3"/>
+        <text x="560" y="386" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" fill="currentColor">Neon Postgres</text>
+        <text x="560" y="401" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">collections(name pk, data jsonb)</text>
+        <text x="560" y="414" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">pooled endpoint, serverless compute</text>
+
+        <!-- Neon -> local advisor -->
+        <path d="M 480 424 L 480 560" fill="none" stroke="currentColor" marker-end="url(#arrow)"/>
+        <text x="490" y="500" font-family="IBM Plex Mono" font-size="10" fill="currentColor">psycopg3 · tcp:5432 direct</text>
+
+        <!-- local advisor -->
+        <rect x="360" y="564" width="250" height="60" rx="8" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"/>
+        <text x="485" y="588" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" fill="currentColor">advisor.py</text>
+        <text x="485" y="605" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">anthropic SDK client, interactive TTY</text>
+
+        <!-- you -->
+        <rect x="40" y="564" width="180" height="60" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.3"/>
+        <text x="130" y="588" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" fill="var(--accent)">operator</text>
+        <text x="130" y="605" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--accent)">/approve → types "LIVE"</text>
+
+        <path d="M 220 594 L 356 594" fill="none" stroke="var(--accent)" marker-end="url(#arrowAccent)"/>
+
+        <!-- advisor -> Robinhood write, gated -->
+        <path d="M 610 594 L 900 594 L 900 302" fill="none" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arrowAccent)"/>
+        <text x="758" y="587" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="var(--accent)" font-weight="500">place_equity_order · typed confirm · ref_id=uuid5(entry_id)</text>
+
+        <!-- PM -> execute_autonomous -> Robinhood, disarmed -->
+        <path d="M 310 234 L 310 460 L 900 460 L 900 302" fill="none" stroke="var(--warn)" stroke-width="1.6" stroke-dasharray="3 3" marker-end="url(#arrowWarn)"/>
+        <text x="600" y="453" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="var(--warn)" font-weight="500">execute_autonomous · ≤$30 notional · no confirm — SPY_LIVE unset, disarmed</text>
+
+        <!-- Robinhood MCP -->
+        <rect x="820" y="238" width="180" height="64" rx="8" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"/>
+        <text x="910" y="263" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" fill="currentColor">Robinhood MCP</text>
+        <text x="910" y="279" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">streamable-HTTP, OAuth2/PKCE</text>
+        <text x="910" y="293" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">agentic_allowed account only</text>
+
+      </svg>
+
+      <div class="legend">
+        <span><span class="swatch" style="background:var(--ok)"></span>read-only, unrestricted</span>
+        <span><span class="swatch" style="background:currentColor;opacity:.7"></span>internal state write</span>
+        <span><span class="swatch" style="background:var(--accent)"></span>human-typed-confirm write</span>
+        <span><span class="swatch" style="background:var(--warn)"></span>capped autonomous write — currently disarmed</span>
+        <span><span class="swatch dash"></span>doesn't work — sandbox can't open raw TCP</span>
+      </div>
+      <figcaption>Every arrow into Robinhood MCP that can place an order is gated one of two ways: <code style="font-family:inherit">execute_approved()</code> blocks on an interactive <code style="font-family:inherit">input()</code> call reading a typed <code style="font-family:inherit">LIVE</code>, and <code style="font-family:inherit">execute_autonomous()</code> checks <code style="font-family:inherit">notional ≤ AUTONOMOUS_MAX_NOTIONAL</code> (30.0) with no human present — both still run the full <code style="font-family:inherit">risk_gate.evaluate()</code> + live buying-power check first, and both place with an idempotent <code style="font-family:inherit">ref_id</code> so a retried call can't double-fill. The direct sandbox→Postgres edge is drawn to show what was tried first: the sandbox's egress proxy only forwards HTTP CONNECT tunnels, so a raw psycopg3 TCP handshake to Neon just times out — <code style="font-family:inherit">store_proxy</code> exists purely to convert that write into something the proxy will carry.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Stack</h2>
+    <p class="section-note">Grouped by layer, with the non-obvious choice behind each one — this is the part that doesn't show up in a box-and-arrow diagram.</p>
+    <div class="stack-grid">
+
+      <div class="stack-card">
+        <p class="layer">Trigger / compute</p>
+        <h3>Claude Code Routines (CCR)</h3>
+        <p>Cron-scheduled cloud sessions; each fire is a fresh <code>git clone</code> into an ephemeral sandbox — no filesystem state survives between runs.</p>
+        <p class="why"><b>Why not a VM/Lambda:</b> zero infra to own, and the routine already has Claude Code's own tool loop (Bash, background tasks) for orchestrating multi-minute subprocess chains.</p>
+      </div>
+
+      <div class="stack-card">
+        <p class="layer">Network boundary</p>
+        <h3>Egress proxy, Custom allowlist</h3>
+        <p>Outbound traffic routes through a policy-enforcing HTTPS forward proxy with TLS re-termination (custom CA bundle). Default "Trusted" level allows package registries only; we set Custom + <code>*.yahoo.com</code>, <code>cma-store-proxy.vercel.app</code>.</p>
+        <p class="why"><b>The constraint that drove everything below:</b> this proxy is HTTP-only — it does not pass through arbitrary TCP, so raw Postgres on 5432 is unreachable no matter what's on the domain allowlist. Confirmed empirically: <code>curl</code> to an allowlisted HTTPS host worked immediately; <code>psycopg3.connect()</code> to an allowlisted Postgres host hung to timeout.</p>
+      </div>
+
+      <div class="stack-card">
+        <p class="layer">Agents</p>
+        <h3>Claude Managed Agents (CMA)</h3>
+        <p>Bull/Bear/PM run as three separate hosted sessions (Anthropic Messages API, <code>claude-haiku-4-5</code>), each with its own tool grants — Robinhood reads via an MCP toolset, <code>web_search</code>, and custom tools (<code>propose_trade</code>, <code>submit_case</code>).</p>
+        <p class="why"><b>Why three sessions, not one model role-playing three parts:</b> a single context that generates both the bull and bear case tends toward self-agreement. Separate sessions — the Bear only receiving the Bull's finished output — produce a genuine adversarial check.</p>
+      </div>
+
+      <div class="stack-card">
+        <p class="layer">Broker integration</p>
+        <h3>Robinhood Trading MCP</h3>
+        <p><code>streamable-http</code> MCP transport at <code>agent.robinhood.com/mcp/trading</code>. OAuth2 with PKCE; refresh-token rotation handled two ways — CMA's vault proxy for hosted sessions (credential never enters the sandbox), and a local <code>refresh_robinhood_token()</code> for host-side script calls.</p>
+        <p class="why"><b>Why two refresh paths coexist:</b> the vault's copy and the local <code>.env</code>/store copy of the refresh token can drift out of sync since OAuth refresh tokens are typically single-use — a known open item, not yet unified.</p>
+      </div>
+
+      <div class="stack-card">
+        <p class="layer">State bridge</p>
+        <h3>store_proxy — Vercel, Python runtime</h3>
+        <p>A stateless <code>BaseHTTPRequestHandler</code> function (no framework) exposing <code>GET</code>/<code>PUT /api/store?name=&lt;collection&gt;</code>, bearer-token gated, holding the real <code>DATABASE_URL</code> and doing the psycopg3 call itself — since Vercel functions have unrestricted egress.</p>
+        <p class="why"><b>Why not Neon's Data API (PostgREST):</b> evaluated first — provisioned it, then found its auth model requires Neon Auth (Stack Auth, a full end-user identity system) or an externally-hosted JWKS endpoint for service-to-service calls. Disproportionate for one internal caller; reverted in favor of a token we control.</p>
+      </div>
+
+      <div class="stack-card">
+        <p class="layer">HTTP client hardening</p>
+        <h3><code>requests</code> + <code>Connection: close</code></h3>
+        <p>First live run threw intermittent <code>SSLError: UNEXPECTED_EOF_WHILE_READING</code> from Python's <code>requests</code>/<code>urllib3</code> against the proxy — while <code>curl</code> against the identical URL, same process, succeeded 5/5. Fixed with an explicit <code>Connection: close</code> header (no pooled reuse) plus a 3-attempt backoff retry.</p>
+        <p class="why"><b>Root cause, inferred not confirmed:</b> urllib3's connection pool reusing a CONNECT-tunneled socket to the proxy after it had gone stale; curl's one-shot-per-invocation model never hit it.</p>
+      </div>
+
+      <div class="stack-card">
+        <p class="layer">Persistence</p>
+        <h3>Neon Postgres — single jsonb table</h3>
+        <p><code>collections(name text primary key, data jsonb, updated_at)</code> — one row per logical collection (journal, playbook, shadow, debates, beliefs, theses, secrets), upserted via <code>INSERT … ON CONFLICT DO UPDATE</code>.</p>
+        <p class="why"><b>Why a KV table, not a normalized schema:</b> eight modules already had a stable JSON shape from their file-backed era; swapping <code>Path.read_text()/write_text()</code> for <code>store().load()/save()</code> was a two-line change per module instead of a schema migration.</p>
+      </div>
+
+      <div class="stack-card">
+        <p class="layer">Order safety</p>
+        <h3><code>risk_gate.py</code> + idempotent <code>ref_id</code></h3>
+        <p>Deterministic, no LLM in the loop: symbol whitelist, side whitelist (<code>buy</code> only), hard max quantity/notional, kill switch — evaluated on every order regardless of which path proposed it. Every placed order carries <code>ref_id = uuid5(NAMESPACE_OID, journal_entry_id)</code>.</p>
+        <p class="why"><b>Why idempotency matters here specifically:</b> both execution paths can legitimately retry on a transient MCP error; without a stable <code>ref_id</code>, a retry after an ambiguous failure could double-fill.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Runtime behavior, weekdays 8:45am Denver</h2>
+    <div class="expect-grid">
+      <div class="expect-card">
+        <h3>01 · Engine</h3>
+        <p><code>spy_decision_engine/main.py</code> — pulls real OHLC/quotes via <code>yfinance</code>, computes a weighted momentum/sentiment/volatility score, writes <code>final_decision.json</code>-equivalent into the ledger. Deterministic; no model call.</p>
+      </div>
+      <div class="expect-card">
+        <h3>02 · Debate</h3>
+        <p><code>committee.py --once</code> — Bull proposes, Bear rebuts the Bull's finished case, PM decides <code>propose_trade</code> or <code>pass_with_reason</code>. Every custom tool call is a journaled write, not free text.</p>
+      </div>
+      <div class="expect-card">
+        <h3>03 · Execution decision</h3>
+        <p>PM's <code>propose_trade(mode="live")</code> now routes through <code>execute_autonomous()</code>: <code>risk_gate</code> pass + notional ≤ $30 + <code>SPY_LIVE=1</code> → real fill, no confirmation. Otherwise: <code>status="proposed"</code>, queued.</p>
+      </div>
+      <div class="expect-card">
+        <h3>04 · Sweep</h3>
+        <p><code>sweep.py</code> closes anything at target/stop/time-limit and resolves matured shadow trades + predictions from live quotes. Only covers <code>status="open"</code> (sim) entries — see the gap below.</p>
+      </div>
+      <div class="expect-card warn" style="grid-column:1 / -1">
+        <h3>Currently disarmed, and a known gap</h3>
+        <p><code>SPY_LIVE</code> is unset on the routine's environment, so <code>execute_autonomous()</code> always returns "not armed" — every proposal queues, same as before this capability existed. Separately: nothing in the codebase auto-closes a <em>live</em> position once opened — <code>sweep.py</code>'s target/stop/time-limit logic only runs against sim-lane (<code>status="open"</code>) entries. An autonomous fill accumulates as a real position until closed by hand via <code>advisor.py</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Components</h2>
+    <div class="tbl-wrap">
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>Protocol / auth</th><th>Role</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="name">desk-briefing</td><td class="proto">cron, CCR</td><td class="role">Fires the cloud lane weekdays 8:45am Denver (<code>45 14 * * 1-5</code> UTC); nothing else triggers this pipeline.</td></tr>
+          <tr><td class="name">spy_decision_engine</td><td class="proto">HTTPS (yfinance)</td><td class="role">Deterministic scoring — same code path as local runs, no model in this stage.</td></tr>
+          <tr><td class="name">committee.py</td><td class="proto">Anthropic Messages API</td><td class="role">Orchestrates 3 CMA sessions; owns the <code>execute_autonomous</code> call on the PM's live proposal.</td></tr>
+          <tr><td class="name">execution.py</td><td class="proto">MCP (server + host-side)</td><td class="role">The only module that calls an order-placing tool — two entry points, <code>execute_approved</code> (interactive) and <code>execute_autonomous</code> (capped, unattended).</td></tr>
+          <tr><td class="name">risk_gate.py</td><td class="proto">in-process, deterministic</td><td class="role">Hard caps evaluated before every order, both paths, no exceptions.</td></tr>
+          <tr><td class="name">store_proxy</td><td class="proto">HTTPS, bearer token</td><td class="role">Stateless Vercel function; the sandbox's only reachable door to Postgres.</td></tr>
+          <tr><td class="name">Neon Postgres</td><td class="proto">psycopg3, tcp:5432</td><td class="role">Single source of truth: journal, debates, shadow, playbook, secrets.</td></tr>
+          <tr><td class="name">advisor.py</td><td class="proto">psycopg3 direct + Anthropic SDK</td><td class="role">Runs on the operator's machine; the only interactive typed-confirm order path.</td></tr>
+          <tr><td class="name">Robinhood MCP</td><td class="proto">streamable-HTTP, OAuth2/PKCE</td><td class="role">Reads open to committee sessions; writes reachable only from execution.py's two gated paths.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Ticker and cadence: <code>TICKER</code> env var and the routine's cron expression. Autonomous ceiling: <code>execution.AUTONOMOUS_MAX_NOTIONAL</code>. Run history / manual fire: <code>claude.ai/code/routines</code>.
+  </footer>
+
+</div>
