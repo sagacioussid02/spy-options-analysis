@@ -200,7 +200,10 @@ class TradeJournal:
         return [e for e in self._load() if e["status"] == "proposed"]
 
     def open_positions(self) -> list[dict]:
-        return [e for e in self._load() if e["status"] == "open"]
+        # "executed" = a real live fill (mark_executed); "open" = a sim fill.
+        # Both are held positions that sweep must manage and that count
+        # toward the live exposure cap.
+        return [e for e in self._load() if e["status"] in ("open", "executed")]
 
     def summarize(self) -> dict:
         """The learning view: edge by strategy / regime / conviction bucket.

@@ -1,72 +1,28 @@
 {
   "overall": {
-    "positive_count": 16,
-    "negative_count": 4,
-    "headline_score": 0.8,
-    "blended_positive": 6,
+    "positive_count": 3,
+    "negative_count": 2,
+    "headline_score": 0.6,
+    "blended_positive": 1,
     "blended_negative": 0,
-    "blended_score": 0.86
+    "blended_score": 1.0
   },
   "top_headlines": [
-    "Breadth Weakens Again, but the Broader Trend Remains Neutral With a Negative Bias",
-    "There Are Plenty of Eli Lilly Bulls: Here\u2019s What They Aren\u2019t Telling You",
-    "Announcing Koa: Salesforce\u2019s First CRM Reasoning Model, Built on NVIDIA Nemotron",
-    "Vertical Data Secures $192 Million AI Infrastructure Commitment for Global AI Developer",
-    "Cloudflare Helps End the Search-or-AI-Training Tradeoff",
-    "Apple\u2019s Outstanding Comedy Widow\u2019s Bay triumphs as the most decorated freshman comedy in Emmy history and Apple TV leads as the most awarded network at the 78th Primetime Emmy Awards",
-    "Latest News In Cloud AI - Bitdeer AI Expands With New AI Cloud Data Center",
-    "DG Matrix Appoints Daniel Doimo, MGE UPS Systems Co-Founder and Former Schneider Electric Executive Vice President, to Executive Advisory Board",
-    "Is It Worth Investing in Amazon (AMZN) Based on Wall Street's Bullish Views?",
-    "Amazon AWS Says Access Cannot Be Restored to Bahrain Facility After War Damage",
-    "Cathie Wood Makes Striking Switch Between AI Stock Giants",
-    "Fifty-Five Analysts Cover Meta and None Say Sell",
-    "2 Stocks That Will Cash In When Anthropic Goes Public",
-    "Elon Musk Makes Strongest Hint Yet About A Tesla-SpaceX Merger",
-    "How Deep Does the AI Doom and Gloom Run? \u2018We Don\u2019t Know\u2019 Is the Only Sure Answer."
+    "Over 30 CEOs scored an invite to the US-China state dinner \u2014 and these 4 got a spot at the head table",
+    "Apple Stock Approaches Buy Point Following Launch Of New iPhone, New CEO",
+    "Apple (NASDAQ:AAPL) Stands Out as a Quality Investing Candidate Despite Premium Valuation",
+    "Block Expands Square and Cash App's Reach With Apple & Workday Deals",
+    "Apple: Why I'm Betting Against This Valuable Company (Rating Downgrade)"
   ],
   "by_stock": {
-    "NVIDIA": {
-      "headline_score": 1.0,
-      "headline_sentiment": "positive",
-      "mentions": 2,
-      "recent_headlines": [
-        "Announcing Koa: Salesforce\u2019s First CRM Reasoning Model, Built on NVIDIA Nemotron",
-        "Meta, Alphabet and Microsoft Rise While Nvidia Falls After Three AI Chiefs Call For Slowing Down Frontier Models"
-      ],
-      "direct_finbert": {
-        "stock": "NVDA",
-        "sentiment": "positive",
-        "score": 0.444,
-        "confidence": 0.849,
-        "source": "direct_finbert_query",
-        "breakdown": {
-          "positive_prompts": 2,
-          "negative_prompts": 1,
-          "neutral_prompts": 0,
-          "avg_confidence": 0.849
-        }
-      },
-      "blended": {
-        "blended_score": 0.622,
-        "blended_sentiment": "positive",
-        "sources": [
-          "headlines",
-          "direct_finbert"
-        ],
-        "weights": {
-          "headlines": 0.32,
-          "direct_finbert": 0.68
-        },
-        "headline_contribution": 0.32,
-        "finbert_contribution": 0.302
-      }
-    },
     "Apple": {
-      "headline_score": 0.0,
-      "headline_sentiment": "negative",
-      "mentions": 1,
+      "headline_score": 0.5,
+      "headline_sentiment": "neutral",
+      "mentions": 4,
       "recent_headlines": [
-        "Apple\u2019s Outstanding Comedy Widow\u2019s Bay triumphs as the most decorated freshman comedy in Emmy history and Apple TV leads as the most awarded network at the 78th Primetime Emmy Awards"
+        "Apple (NASDAQ:AAPL) Stands Out as a Quality Investing Candidate Despite Premium Valuation",
+        "Block Expands Square and Cash App's Reach With Apple & Workday Deals",
+        "Apple: Why I'm Betting Against This Valuable Company (Rating Downgrade)"
       ],
       "direct_finbert": {
         "stock": "AAPL",
@@ -82,200 +38,22 @@
         }
       },
       "blended": {
-        "blended_score": 0.44,
+        "blended_score": 0.525,
         "blended_sentiment": "positive",
         "sources": [
           "headlines",
           "direct_finbert"
         ],
         "weights": {
-          "headlines": 0.2,
-          "direct_finbert": 0.8
+          "headlines": 0.5,
+          "direct_finbert": 0.5
         },
-        "headline_contribution": 0.0,
-        "finbert_contribution": 0.44
-      }
-    },
-    "Microsoft": {
-      "headline_score": 0.5,
-      "headline_sentiment": "neutral",
-      "mentions": 1,
-      "recent_headlines": [
-        "Meta, Alphabet and Microsoft Rise While Nvidia Falls After Three AI Chiefs Call For Slowing Down Frontier Models"
-      ],
-      "direct_finbert": {
-        "stock": "MSFT",
-        "sentiment": "positive",
-        "score": 0.567,
-        "confidence": 0.785,
-        "source": "direct_finbert_query",
-        "breakdown": {
-          "positive_prompts": 2,
-          "negative_prompts": 1,
-          "neutral_prompts": 0,
-          "avg_confidence": 0.785
-        }
-      },
-      "blended": {
-        "blended_score": 0.553,
-        "blended_sentiment": "positive",
-        "sources": [
-          "headlines",
-          "direct_finbert"
-        ],
-        "weights": {
-          "headlines": 0.2,
-          "direct_finbert": 0.8
-        },
-        "headline_contribution": 0.102,
-        "finbert_contribution": 0.452
-      }
-    },
-    "Amazon": {
-      "headline_score": 1.0,
-      "headline_sentiment": "positive",
-      "mentions": 2,
-      "recent_headlines": [
-        "Is It Worth Investing in Amazon (AMZN) Based on Wall Street's Bullish Views?",
-        "Amazon AWS Says Access Cannot Be Restored to Bahrain Facility After War Damage"
-      ],
-      "direct_finbert": {
-        "stock": "AMZN",
-        "sentiment": "positive",
-        "score": 0.503,
-        "confidence": 0.82,
-        "source": "direct_finbert_query",
-        "breakdown": {
-          "positive_prompts": 2,
-          "negative_prompts": 1,
-          "neutral_prompts": 0,
-          "avg_confidence": 0.82
-        }
-      },
-      "blended": {
-        "blended_score": 0.666,
-        "blended_sentiment": "positive",
-        "sources": [
-          "headlines",
-          "direct_finbert"
-        ],
-        "weights": {
-          "headlines": 0.33,
-          "direct_finbert": 0.67
-        },
-        "headline_contribution": 0.328,
-        "finbert_contribution": 0.338
-      }
-    },
-    "Meta": {
-      "headline_score": 1.0,
-      "headline_sentiment": "positive",
-      "mentions": 2,
-      "recent_headlines": [
-        "Fifty-Five Analysts Cover Meta and None Say Sell",
-        "Meta, Alphabet and Microsoft Rise While Nvidia Falls After Three AI Chiefs Call For Slowing Down Frontier Models"
-      ],
-      "direct_finbert": {
-        "stock": "META",
-        "sentiment": "positive",
-        "score": 0.494,
-        "confidence": 0.831,
-        "source": "direct_finbert_query",
-        "breakdown": {
-          "positive_prompts": 2,
-          "negative_prompts": 1,
-          "neutral_prompts": 0,
-          "avg_confidence": 0.831
-        }
-      },
-      "blended": {
-        "blended_score": 0.658,
-        "blended_sentiment": "positive",
-        "sources": [
-          "headlines",
-          "direct_finbert"
-        ],
-        "weights": {
-          "headlines": 0.32,
-          "direct_finbert": 0.68
-        },
-        "headline_contribution": 0.325,
-        "finbert_contribution": 0.333
-      }
-    },
-    "Google": {
-      "headline_score": 0.5,
-      "headline_sentiment": "neutral",
-      "mentions": 1,
-      "recent_headlines": [
-        "Meta, Alphabet and Microsoft Rise While Nvidia Falls After Three AI Chiefs Call For Slowing Down Frontier Models"
-      ],
-      "direct_finbert": null,
-      "blended": {
-        "blended_score": 0.5,
-        "blended_sentiment": "neutral",
-        "sources": [
-          "headlines_only"
-        ]
-      }
-    },
-    "Tesla": {
-      "headline_score": 1.0,
-      "headline_sentiment": "positive",
-      "mentions": 1,
-      "recent_headlines": [
-        "Elon Musk Makes Strongest Hint Yet About A Tesla-SpaceX Merger"
-      ],
-      "direct_finbert": null,
-      "blended": {
-        "blended_score": 1.0,
-        "blended_sentiment": "positive",
-        "sources": [
-          "headlines_only"
-        ]
+        "headline_contribution": 0.251,
+        "finbert_contribution": 0.275
       }
     }
   },
   "direct_finbert_all_stocks": {
-    "NVDA": {
-      "stock": "NVDA",
-      "sentiment": "positive",
-      "score": 0.444,
-      "confidence": 0.849,
-      "source": "direct_finbert_query",
-      "breakdown": {
-        "positive_prompts": 2,
-        "negative_prompts": 1,
-        "neutral_prompts": 0,
-        "avg_confidence": 0.849
-      }
-    },
-    "AMZN": {
-      "stock": "AMZN",
-      "sentiment": "positive",
-      "score": 0.503,
-      "confidence": 0.82,
-      "source": "direct_finbert_query",
-      "breakdown": {
-        "positive_prompts": 2,
-        "negative_prompts": 1,
-        "neutral_prompts": 0,
-        "avg_confidence": 0.82
-      }
-    },
-    "META": {
-      "stock": "META",
-      "sentiment": "positive",
-      "score": 0.494,
-      "confidence": 0.831,
-      "source": "direct_finbert_query",
-      "breakdown": {
-        "positive_prompts": 2,
-        "negative_prompts": 1,
-        "neutral_prompts": 0,
-        "avg_confidence": 0.831
-      }
-    },
     "AAPL": {
       "stock": "AAPL",
       "sentiment": "positive",
@@ -287,19 +65,6 @@
         "negative_prompts": 1,
         "neutral_prompts": 0,
         "avg_confidence": 0.795
-      }
-    },
-    "MSFT": {
-      "stock": "MSFT",
-      "sentiment": "positive",
-      "score": 0.567,
-      "confidence": 0.785,
-      "source": "direct_finbert_query",
-      "breakdown": {
-        "positive_prompts": 2,
-        "negative_prompts": 1,
-        "neutral_prompts": 0,
-        "avg_confidence": 0.785
       }
     }
   },

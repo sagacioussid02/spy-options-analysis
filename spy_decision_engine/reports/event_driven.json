@@ -1,10 +1,8 @@
 {
-  "timestamp": "08:48",
-  "events_detected": 0,
-  "events": [],
+  "events_detected": [],
   "reactions": [],
   "net_event_bias": "NEUTRAL",
   "confidence": "LOW",
   "score": 0.5,
-  "impact_summary": "No events impacting SPY"
+  "skipped": "AAPL is not an index ticker"
 }

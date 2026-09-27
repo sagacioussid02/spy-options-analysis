@@ -28,6 +28,7 @@ from typing import Optional
 
 import uuid
 
+import exit_review
 import sleeve
 from execution import ACCOUNT, _extract_price, _qty_str
 from journal import TradeJournal
@@ -161,7 +162,13 @@ def run() -> list[dict]:
             continue
         reason = _should_close(entry, quote, today)
         if not reason:
-            continue
+            # No mechanical exit hit — let the model judge the thesis against
+            # the entry's own kill_criteria. Close-only; failures mean hold.
+            action, why = exit_review.review(entry, quote)
+            print(f"  [sweep] exit-review {entry['id']} {entry['symbol']}: {action} — {why}")
+            if action != "close":
+                continue
+            reason = f"discretionary exit ({why})"
 
         exit_price = quote
         if entry.get("mode") == "live":

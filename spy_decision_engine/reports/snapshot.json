@@ -1,48 +1,8 @@
 {
-  "timestamp": "08:47",
-  "stocks": {
-    "NVDA": {
-      "change_pct": 0.74,
-      "volume_ratio": 0.22,
-      "price": 212.52
-    },
-    "AAPL": {
-      "change_pct": -0.98,
-      "volume_ratio": 0.14,
-      "price": 329.81
-    },
-    "MSFT": {
-      "change_pct": -1.18,
-      "volume_ratio": 0.11,
-      "price": 499.46
-    },
-    "AMZN": {
-      "change_pct": -1.92,
-      "volume_ratio": 0.19,
-      "price": 248.66
-    },
-    "META": {
-      "change_pct": -0.06,
-      "volume_ratio": 0.34,
-      "price": 665.2
-    },
-    "GOOGL": {
-      "change_pct": -1.36,
-      "volume_ratio": 0.19,
-      "price": 344.65
-    },
-    "TSLA": {
-      "change_pct": -0.38,
-      "volume_ratio": 0.21,
-      "price": 357.57
-    },
-    "BRK-B": {
-      "change_pct": 0.1,
-      "volume_ratio": 0.13,
-      "price": 515.48
-    }
-  },
-  "green_count": 2,
-  "red_count": 6,
-  "alignment_score": 0.25
+  "timestamp": "",
+  "stocks": {},
+  "green_count": 0,
+  "red_count": 0,
+  "alignment_score": 0.5,
+  "skipped": "AAPL is not an index ticker \u2014 alignment only applies to ['SPY']"
 }

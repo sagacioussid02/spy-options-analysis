@@ -8,6 +8,7 @@ holds the trigger; everything below is deterministic host-side Python.
 from __future__ import annotations
 
 import json
+import math
 import re
 import uuid
 
@@ -30,6 +31,8 @@ ACCOUNT = lab_env("ROBINHOOD_ACCOUNT_NUMBER")  # the agentic_allowed account
 # interactive typed-confirm path — this is not a separate, easier-to-flip
 # gate, it's a size cap layered on top of the same one.
 AUTONOMOUS_MAX_NOTIONAL = 30.0
+# Oversized live buys are shrunk to this (fractional, market) instead of queuing.
+AUTONOMOUS_TARGET_NOTIONAL = 25.0
 
 J = TradeJournal()
 
@@ -296,7 +299,13 @@ def execute_approved(entry: dict) -> str:
             fill = _live_price(entry["symbol"]) or entry.get("limit_price") or entry.get("snapshot_price")
         mode = "SIMULATED"
 
-    J.mark_executed(entry["id"], fill_price=float(fill), filled_qty=float(entry["quantity"]))
+    if mode == "SIMULATED":
+        # Never journal a paper fill as a real one: sweep places a REAL sell
+        # for any mode="live" position it finds open.
+        J._update(entry["id"], mode="sim")
+        J.open_sim(entry["id"], fill_price=float(fill), filled_qty=float(entry["quantity"]))
+    else:
+        J.mark_executed(entry["id"], fill_price=float(fill), filled_qty=float(entry["quantity"]))
     return f"{mode} fill: {entry['quantity']:g} {entry['symbol']} @ ${float(fill):.2f}. Journaled as executed."
 
 
@@ -319,6 +328,21 @@ def execute_autonomous(entry: dict) -> str:
 
     est_price = entry.get("limit_price") or _live_price(entry["symbol"]) or entry.get("snapshot_price") or 0
     notional = float(est_price) * float(entry["quantity"])
+    if notional > AUTONOMOUS_MAX_NOTIONAL and entry["side"] == "buy" and float(est_price) > 0:
+        # Shrink to a fractional market order rather than punting to a human:
+        # the committee proposes whole shares, which for a $50 sleeve are
+        # nearly always over the cap. Robinhood only allows fractional shares
+        # as market orders, so a limit entry becomes a market entry.
+        qty = math.floor(AUTONOMOUS_TARGET_NOTIONAL / float(est_price) * 1e6) / 1e6
+        if qty <= 0:
+            return "Fractional resize rounds to zero shares — leaving queued."
+        note = (f"Autonomous fractional resize: {entry['quantity']:g} -> {qty:g} sh "
+                f"(~${qty * float(est_price):.2f}), {entry['entry_style']} -> market.")
+        J._update(entry["id"], quantity=qty, entry_style="market",
+                  human_notes=(entry.get("human_notes", "") + " " + note).strip())
+        entry.update(quantity=qty, entry_style="market")
+        print(f"  [autonomous] {note}")
+        notional = float(est_price) * qty
     if notional > AUTONOMOUS_MAX_NOTIONAL:
         return (f"${notional:.2f} exceeds the ${AUTONOMOUS_MAX_NOTIONAL:.0f} autonomous cap — "
                 f"leaving queued for human /approve via advisor.py.")
