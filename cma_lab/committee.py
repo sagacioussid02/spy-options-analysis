@@ -554,20 +554,37 @@ def make_h_pm_propose(debate_id: str):
     return _h
 
 
-def make_h_pass(debate_id: str, bull_case: dict):
+def make_h_pass(debate_id: str, bull_case: dict, engine_snapshot: Optional[dict] = None):
     def _h(inp: dict) -> str:
         reason = str(inp.get("reason", "")).strip() or "no reason given"
         trade = (bull_case or {}).get("suggested_trade") or {}
         symbol = str(trade.get("symbol") or TICKER)
         side = str(trade.get("side") or "buy")
         exit_plan = trade.get("exit_plan") or {}
-        quote = _quote_for(symbol)
-        if quote is None or side == "none":
+        if side == "none":
             ShadowStore()  # ensure file exists even with nothing to record
             return f"Passed. Reason: {reason} (no shadow recorded — no bull long/short to grade)."
+        quote = _quote_for(symbol)
+        note = ""
+        if quote is None:
+            # Live quote fetch commonly fails when the Robinhood MCP token
+            # has lapsed — that's a broker-auth outage, not a reason to drop
+            # the pass. Fall back to the engine's own snapshot price (same
+            # source the desk already reasoned from this debate) so the pass
+            # is still graded later instead of silently vanishing into
+            # "unclear" and corrupting the desk's own regret/calibration
+            # stats, which read directly off recorded shadow entries.
+            snap = engine_snapshot or {}
+            quote = ((snap.get("entry_strategy") or {}).get("current_entry")
+                     or (snap.get("market_conditions") or {}).get("spy_price"))
+            if quote is None:
+                ShadowStore()
+                return (f"Passed. Reason: {reason} (no shadow recorded — no live quote "
+                        f"and no engine snapshot price available for {symbol}).")
+            note = " (entry price from engine snapshot — live quote unavailable)"
         entry = ShadowStore().record_pass(debate_id=debate_id, symbol=symbol, side=side,
                                           entry_price=quote, exit_plan=exit_plan, reason=reason)
-        return f"Passed — recorded as shadow {entry.id} for later grading. Reason: {reason}"
+        return f"Passed — recorded as shadow {entry.id}{note} for later grading. Reason: {reason}"
     return _h
 
 
@@ -582,13 +599,24 @@ def _quote_for(symbol: str):
 
 # ------------------------------ session driver (non-interactive) -------------
 def _run_session(agent_id: str, env_id: str, vault_id: str, *, title: str,
-                  kickoff_text: str, handlers: dict, capture: set[str]) -> tuple[str, dict]:
+                  kickoff_text: str, handlers: dict, capture: set[str],
+                  require_one_of: Optional[set[str]] = None,
+                  max_nudges: int = 1) -> tuple[str, dict]:
+    """`require_one_of`: if the session goes idle having finished on its own
+    (not via requires_action) without ever calling one of these tool names,
+    it gets nudged to actually decide instead of being recorded as having
+    silently produced nothing (see the PM caller — a debate that ends in
+    prose with no propose_trade/pass_with_reason is a decision-forcing bug,
+    not a legitimate 'unclear')."""
     c = client()
     session = c.beta.sessions.create(agent=agent_id, environment_id=env_id,
                                      vault_ids=[vault_id], title=title)
     print(f"  session {session.id} — watch live: {console_url(session.id)}")
     captured: dict = {}
     pending: list = []
+    called_tools: set[str] = set()
+    session_errors: list[str] = []
+    nudges_left = max_nudges
     with c.beta.sessions.events.stream(session_id=session.id) as stream:
         c.beta.sessions.events.send(
             session_id=session.id,
@@ -602,12 +630,14 @@ def _run_session(agent_id: str, env_id: str, vault_id: str, *, title: str,
                         print(b.text, end="", flush=True)
             elif t == "agent.custom_tool_use":
                 pending.append(event)
+                called_tools.add(event.name)
                 if event.name in capture:
                     captured[event.name] = getattr(event, "input", {}) or {}
             elif t in ("agent.mcp_tool_use", "agent.tool_use"):
                 print(f"\n  · {getattr(event, 'name', '?')}…", flush=True)
             elif t == "session.error":
                 print(f"\n[session error] {getattr(event, 'error', event)}")
+                session_errors.append(str(getattr(event, "error", event)))
             elif t == "session.status_terminated":
                 break
             elif t == "session.status_idle":
@@ -624,9 +654,32 @@ def _run_session(agent_id: str, env_id: str, vault_id: str, *, title: str,
                     if results:
                         c.beta.sessions.events.send(session_id=session.id, events=results)
                     continue
+                if (require_one_of and nudges_left > 0
+                        and not (called_tools & require_one_of)):
+                    nudges_left -= 1
+                    print(f"\n  [nudge] no decision tool called yet — pressing for one "
+                          f"({nudges_left} nudge(s) left)")
+                    nudge_text = (
+                        "You haven't called propose_trade or pass_with_reason yet — "
+                        "a debate has to end in one or the other. Pick now, based on "
+                        "everything you've already gathered. If you're torn, that's "
+                        "what pass_with_reason is for."
+                    )
+                    c.beta.sessions.events.send(
+                        session_id=session.id,
+                        events=[{"type": "user.message",
+                                "content": [{"type": "text", "text": nudge_text}]}],
+                    )
+                    continue
                 print()
                 break
     report_cost(session.id, model=MODEL, label=f"{TICKER}:{title}")
+    # Reserved key, not a real tool name — lets callers tell a genuinely
+    # decision-less session apart from one that crashed on an MCP/API error
+    # without having to widen this function's return shape everywhere.
+    captured["_diagnostics"] = {"called_tools": sorted(called_tools),
+                                "errors": session_errors,
+                                "nudged": nudges_left < max_nudges}
     return session.id, captured
 
 
@@ -704,11 +757,13 @@ def run_once() -> dict:
     )
     pm_handlers = {**READ_HANDLERS,
                   "propose_trade": make_h_pm_propose(debate_id),
-                  "pass_with_reason": make_h_pass(debate_id, bull_case),
+                  "pass_with_reason": make_h_pass(debate_id, bull_case, engine_snapshot),
                   "register_hypothesis": make_h_register_hypothesis("pm"),
                   "log_prediction": make_h_log_prediction("pm", debate_id)}
-    _run_session(pm_id, env_id, vault_id, title=f"{debate_id}-pm",
-                kickoff_text=pm_kickoff, handlers=pm_handlers, capture=set())
+    _, pm_captured = _run_session(pm_id, env_id, vault_id, title=f"{debate_id}-pm",
+                kickoff_text=pm_kickoff, handlers=pm_handlers, capture=set(),
+                require_one_of={"propose_trade", "pass_with_reason"})
+    pm_diag = pm_captured.get("_diagnostics", {})
 
     # Resolve the outcome from what was actually WRITTEN, not the model's
     # claimed intent — journal.json / shadow.json are the source of truth.
@@ -720,9 +775,19 @@ def run_once() -> dict:
                       "status": journal_entries[-1].get("status")}
     elif shadow_entries:
         pm_decision = {"decision": "pass", "shadow_id": shadow_entries[-1]["id"]}
+    elif pm_diag.get("errors"):
+        # The session hit an MCP/API error (e.g. Robinhood auth) — nothing
+        # written is a symptom of that outage, not the PM declining to act.
+        # Keeping this apart from "no_decision" stops an infra outage from
+        # looking like the desk being indecisive in its own regret stats.
+        pm_decision = {"decision": "session_error", "errors": pm_diag["errors"],
+                      "note": "session hit an error before any decision tool ran"}
     else:
-        pm_decision = {"decision": "unclear",
-                      "note": "PM produced neither a proposal nor a pass"}
+        # PM ran cleanly (including after a nudge, if one fired) and still
+        # never called propose_trade or pass_with_reason — a genuine
+        # decision-forcing failure, distinct from an infra-caused "unclear".
+        pm_decision = {"decision": "no_decision", "nudged": pm_diag.get("nudged", False),
+                      "note": "PM ran without error but never called a decision tool"}
 
     debate = {
         "id": debate_id,
