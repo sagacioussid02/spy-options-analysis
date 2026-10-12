@@ -338,6 +338,14 @@ def ensure_robinhood_credential(vault_id: str, force: bool = False) -> None:
     into cma_lab/.env) as an mcp_oauth credential inside the vault. Idempotent:
     only created once unless force=True.
 
+    force=True does NOT delete-and-recreate — the vault API rejects a second
+    create() for the same mcp_server_url with 409 Conflict ("A credential
+    already exists for this MCP server URL"). Instead it UPDATES the existing
+    credential in place: by the id in local state if we have it, else by
+    searching the vault for the credential whose mcp_server_url matches (self-
+    healing if local state's id is stale/missing — e.g. after a Postgres/JSON
+    state split, or a credential created outside this flow).
+
     The `refresh` block is what lets CMA keep the session alive indefinitely —
     it posts the refresh_token to Robinhood's token endpoint when the access
     token nears expiry. token_endpoint_auth is {"type": "none"} because
@@ -358,15 +366,18 @@ def ensure_robinhood_credential(vault_id: str, force: bool = False) -> None:
             "Run:  .venv/bin/python cma_lab/chunk3_get_robinhood_token.py  first."
         )
 
-    auth: dict = {
+    # create() payload: full shape, including the immutable fields
+    # (mcp_server_url, refresh.client_id/token_endpoint/resource/
+    # token_endpoint_auth) that only exist at creation time.
+    create_auth: dict = {
         "type": "mcp_oauth",
         "mcp_server_url": ROBINHOOD_MCP_URL,
         "access_token": access,
     }
     if expires_at:
-        auth["expires_at"] = expires_at
+        create_auth["expires_at"] = expires_at
     if refresh:
-        auth["refresh"] = {
+        create_auth["refresh"] = {
             "client_id": client_id,
             "refresh_token": refresh,
             "token_endpoint": ROBINHOOD_TOKEN_ENDPOINT,
@@ -375,9 +386,45 @@ def ensure_robinhood_credential(vault_id: str, force: bool = False) -> None:
             "scope": ROBINHOOD_SCOPE,
         }
 
-    cred = client().beta.vaults.credentials.create(
-        vault_id, auth=auth, display_name="Robinhood Trading MCP"
-    )
+    # update() payload: the API rejects mcp_server_url (immutable) and
+    # refresh.client_id/token_endpoint/resource/token_endpoint_auth (also
+    # immutable — token_endpoint_auth there is only for rotating a client
+    # SECRET, which Robinhood's public/no-secret client never had). Only
+    # access_token/expires_at/refresh_token/scope are actually updatable.
+    update_auth: dict = {"type": "mcp_oauth", "access_token": access}
+    if expires_at:
+        update_auth["expires_at"] = expires_at
+    if refresh:
+        update_auth["refresh"] = {"refresh_token": refresh, "scope": ROBINHOOD_SCOPE}
+
+    existing_id = state.get("robinhood_credential_id")
+    if force and existing_id:
+        cred = client().beta.vaults.credentials.update(existing_id, vault_id=vault_id, auth=update_auth)
+        state["robinhood_credential_id"] = cred.id
+        save_state(state)
+        print(f"[lab] rotated Robinhood credential {cred.id} in vault {vault_id}")
+        return
+
+    try:
+        cred = client().beta.vaults.credentials.create(
+            vault_id, auth=create_auth, display_name="Robinhood Trading MCP"
+        )
+    except anthropic.ConflictError:
+        # A credential for this mcp_server_url already exists server-side but
+        # local state didn't have its id (or force skipped straight to
+        # create because existing_id was empty) — find it and update instead
+        # of leaving the stale/unauthenticated one in place.
+        found = None
+        page = client().beta.vaults.credentials.list(vault_id)
+        for c in page:
+            if getattr(getattr(c, "auth", None), "mcp_server_url", None) == ROBINHOOD_MCP_URL:
+                found = c
+                break
+        if not found:
+            raise
+        cred = client().beta.vaults.credentials.update(found.id, vault_id=vault_id, auth=update_auth)
+        print(f"[lab] found existing Robinhood credential {cred.id} via list(), rotated it")
+
     state["robinhood_credential_id"] = cred.id
     save_state(state)
     print(f"[lab] stored Robinhood credential {cred.id} in vault {vault_id}")
