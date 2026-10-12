@@ -574,7 +574,19 @@ def make_h_pass(debate_id: str, bull_case: dict, engine_snapshot: Optional[dict]
             # is still graded later instead of silently vanishing into
             # "unclear" and corrupting the desk's own regret/calibration
             # stats, which read directly off recorded shadow entries.
-            snap = engine_snapshot or {}
+            # engine_snapshot is h_engine()'s return value: the raw text of
+            # final_decision.json (see advisor.py's _read), not a parsed
+            # dict — and it may be a plain "(not found: ...)" string or
+            # truncated past 6000 chars. Parse defensively; any failure
+            # just means no fallback price, not a crash.
+            snap = {}
+            if isinstance(engine_snapshot, dict):
+                snap = engine_snapshot
+            elif isinstance(engine_snapshot, str):
+                try:
+                    snap = json.loads(engine_snapshot)
+                except (json.JSONDecodeError, ValueError):
+                    snap = {}
             quote = ((snap.get("entry_strategy") or {}).get("current_entry")
                      or (snap.get("market_conditions") or {}).get("spy_price"))
             if quote is None:
