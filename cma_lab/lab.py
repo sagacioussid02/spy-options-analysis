@@ -53,7 +53,16 @@ _SECRET_KEYS = {"ROBINHOOD_ACCESS_TOKEN", "ROBINHOOD_REFRESH_TOKEN",
 
 
 def _secrets_store_active() -> bool:
-    return type(store()).__name__ == "PostgresStore"
+    # Any Postgres-backed store counts, not just a direct connection — a
+    # Claude Code cloud routine reaches Neon over HttpProxyStore (STORE_
+    # PROXY_URL; the sandbox can't open a raw Postgres TCP connection), and
+    # that one was missing here. The effect was silent, not an error: this
+    # returning False just makes lab_env() skip straight to OS env/.env,
+    # both of which are legitimately empty in the cloud, so the Robinhood
+    # tokens — already sitting fresh in the secrets collection — were never
+    # read, and every direct mcp_call_tool (sweep.py, execution.py) got a
+    # real 401 from Robinhood instead of a useful token.
+    return type(store()).__name__ in ("PostgresStore", "HttpProxyStore")
 
 
 def lab_env(key: str, default: Optional[str] = None) -> Optional[str]:
