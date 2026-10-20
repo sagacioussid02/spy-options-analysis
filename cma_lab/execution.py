@@ -22,7 +22,9 @@ from risk_gate import APPETITE_PRESETS, evaluate, load_risk_config
 # Live is OFF unless explicitly armed via env (SPY_LIVE=1) — never a code
 # constant you might commit. Even when armed: a hard per-order ceiling for the
 # ramp, a pre-trade review, and a typed confirmation before any real order.
-LIVE_EXECUTION = (lab_env("SPY_LIVE", "") or "").lower() in ("1", "true", "yes")
+SIM_ONLY = (lab_env("SPY_SIM_ONLY", "") or "").lower() in ("1", "true", "yes")
+LIVE_EXECUTION = (not SIM_ONLY and
+                  (lab_env("SPY_LIVE", "") or "").lower() in ("1", "true", "yes"))
 LIVE_MAX_SHARES = 1                       # ramp cap: live orders may not exceed this
 ACCOUNT = lab_env("ROBINHOOD_ACCOUNT_NUMBER")  # the agentic_allowed account
 
@@ -59,6 +61,10 @@ def h_propose(inp: dict) -> str:
     conviction = max(0.0, min(1.0, float(inp.get("conviction", 0))))
     quantity = float(inp.get("quantity", 0))
     notes = []
+
+    if mode == "live" and SIM_ONLY:
+        mode = "sim"
+        notes.append("Downgraded to sim: SPY_SIM_ONLY is enabled for this run.")
 
     # Trial hypotheses are sim-only until they earn live eligibility by the
     # deterministic playbook rule (see playbook.py) — an untested idea doesn't
@@ -230,10 +236,13 @@ def _gate_and_afford(entry: dict) -> tuple[str | None, float]:
     px = entry.get("limit_price") or _live_price(entry["symbol"]) or entry.get("snapshot_price") or 0
     notional = float(px) * float(entry["quantity"])
     try:
+        if not ACCOUNT:
+            raise RuntimeError("ROBINHOOD_ACCOUNT_NUMBER is not configured")
         bp = account_standing(ACCOUNT)["buying_power"]
-    except Exception:  # noqa: BLE001
-        bp = None
-    if bp is not None and notional > bp + 0.01:
+    except Exception as exc:  # noqa: BLE001
+        return (f"BLOCKED — could not verify live buying power ({exc}); "
+                "order was not executed.", px)
+    if notional > bp + 0.01:
         afford = (bp / px) if px else 0
         return (f"BLOCKED — insufficient buying power: order ~${notional:.2f} vs "
                 f"available ${bp:.2f}. You could afford ~{afford:.4f} share. "

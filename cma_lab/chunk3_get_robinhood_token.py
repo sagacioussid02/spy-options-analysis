@@ -119,10 +119,21 @@ def authorize(authorization_endpoint: str, client_id: str) -> tuple[str, str]:
         "code_challenge_method": "S256",
         "resource": MCP_URL,
     })
+    try:
+        server = HTTPServer(("localhost", REDIRECT_PORT), _CallbackHandler)
+    except OSError as exc:
+        if getattr(exc, "errno", None) == 48:
+            raise SystemExit(
+                f"OAuth callback port {REDIRECT_PORT} is already in use. "
+                "This OAuth client is registered with that exact redirect URI, "
+                "so temporarily stop the process listening there, then rerun "
+                "this command."
+            ) from None
+        raise
+
     print(f"[3/4] opening browser to authorize:\n      {url}")
     print("      (waiting for Robinhood to redirect back to localhost — finish "
           "funding/authorizing in the browser; this will keep waiting)")
-    server = HTTPServer(("localhost", REDIRECT_PORT), _CallbackHandler)
     webbrowser.open(url)
     # Keep serving until we actually capture the code (or an error). This ignores
     # stray hits to the callback port (favicon, prefetch) that aren't /callback.
@@ -172,8 +183,19 @@ def update_env(values: dict) -> None:
 
 
 def main() -> None:
+    from lab import (
+        ensure_robinhood_credential,
+        get_or_create_vault,
+        lab_env,
+        seed_secrets_from_env,
+    )
+
     meta = discover()
-    client_id = register_client(meta["registration_endpoint"])
+    client_id = lab_env("ROBINHOOD_CLIENT_ID")
+    if client_id:
+        print("[2/4] reusing the existing OAuth client registration")
+    else:
+        client_id = register_client(meta["registration_endpoint"])
     code, verifier = authorize(meta["authorization_endpoint"], client_id)
     tok = exchange(meta["token_endpoint"], client_id, code, verifier)
 
@@ -194,12 +216,16 @@ def main() -> None:
         "ROBINHOOD_TOKEN_EXPIRES_AT": expires_at,
     })
 
-    print(f"\n[done] tokens saved to {ENV_PATH}")
+    seed_secrets_from_env()
+    vault_id = get_or_create_vault()
+    ensure_robinhood_credential(vault_id, force=True)
+
+    print("\n[done] fresh Robinhood credentials saved and synced to the CMA vault")
     if not refresh:
         print("WARNING: no refresh_token returned — CMA will lose access when the "
-              "access token expires. Re-run this script to refresh manually.")
+              "access token expires. Re-run this script to reauthorize.")
     else:
-        print("Next: .venv/bin/python cma_lab/chunk3_robinhood_read.py")
+        print("Next: rerun the read-only decision view to verify Robinhood access.")
 
 
 if __name__ == "__main__":

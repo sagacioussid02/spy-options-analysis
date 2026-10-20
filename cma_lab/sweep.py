@@ -23,6 +23,7 @@ Run:
 from __future__ import annotations
 
 import json
+import sys
 from datetime import date, datetime, timezone
 from typing import Optional
 
@@ -148,7 +149,7 @@ def _resolve_predictions() -> None:
               f"brier={r['brier']}")
 
 
-def run() -> list[dict]:
+def run(*, sim_only: bool = False) -> list[dict]:
     topup = sleeve.apply_topup_if_due()
     if topup:
         print(f"  [sweep] sleeve topup applied: +${topup:.2f}")
@@ -156,6 +157,9 @@ def run() -> list[dict]:
     today = datetime.now(timezone.utc).date()
     closed = []
     for entry in J.open_positions():
+        if sim_only and entry.get("mode") == "live":
+            print(f"  [sweep] {entry['id']}: live position skipped (--sim-only)")
+            continue
         quote = _quote(entry["symbol"])
         if quote is None:
             print(f"  [sweep] {entry['id']}: no quote for {entry['symbol']}, skipping")
@@ -194,7 +198,7 @@ def run() -> list[dict]:
 
 if __name__ == "__main__":
     print(f"===== sweep @ {datetime.now(timezone.utc).isoformat()} =====")
-    result = run()
+    result = run(sim_only="--sim-only" in sys.argv[1:])
     if not result:
         print("  [sweep] nothing to close.")
     else:

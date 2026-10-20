@@ -37,6 +37,7 @@ import contextlib
 import json
 import os
 import shutil
+import time
 from pathlib import Path
 from typing import Any, Optional
 
@@ -155,10 +156,31 @@ class PostgresStore:
     def _conn(self):
         return self._psycopg.connect(self.dsn)
 
+    @staticmethod
+    def _transient_connection_error(exc: Exception) -> bool:
+        message = str(exc).lower()
+        return any(marker in message for marker in (
+            "server closed the connection",
+            "could not receive data from server",
+            "connection reset by peer",
+            "connection refused",
+            "no route to host",
+            "ssl syscall error",
+        ))
+
     def load(self, name: str, default: Any = None) -> Any:
-        with self._conn() as conn:
-            row = conn.execute("SELECT data FROM collections WHERE name = %s", (name,)).fetchone()
-        return row[0] if row else default
+        for attempt in range(3):
+            try:
+                with self._psycopg.connect(self.dsn, autocommit=True) as conn:
+                    row = conn.execute(
+                        "SELECT data FROM collections WHERE name = %s", (name,)
+                    ).fetchone()
+                return row[0] if row else default
+            except self._psycopg.OperationalError as exc:
+                if attempt == 2 or not self._transient_connection_error(exc):
+                    raise
+                time.sleep(0.25 * (attempt + 1))
+        return default
 
     def save(self, name: str, obj: Any) -> None:
         with self._conn() as conn:

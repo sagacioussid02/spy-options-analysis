@@ -1,6 +1,6 @@
 # SPY Trading — CMA + Robinhood MCP
 
-This repo runs SPY trade analysis and execution through **Claude Managed Agents (CMA)** calling the official **Robinhood Trading MCP**, with a human approving every order.
+This repo runs multi-ticker analysis through **Claude Managed Agents (CMA)** and the official **Robinhood Trading MCP**. The scheduled prototype is simulation-only; live execution is a separate, explicitly gated capability.
 
 ## Layout
 
@@ -13,7 +13,11 @@ This repo runs SPY trade analysis and execution through **Claude Managed Agents 
 
 1. `spy_decision_engine/main.py` produces `reports/final_decision.json`.
 2. A hosted CMA agent (`cma_lab/advisor.py`) reads it and proposes a trade to the journal — it never holds the trigger.
-3. The user reviews via `cma_lab/copilot.py`, the web UI (`cma_lab/web/app.py`), or CLI (`/pending`, `/tweak`, `/approve`, `/reject`).
-4. On approval, `execute_approved()` runs the deterministic risk gate and places the order through the Robinhood Trading MCP (`lab.mcp_call_tool`).
+3. The committee records a proposal or pass. Scheduled runs force proposals into the simulation lane and never submit live orders.
+4. In the interactive live path, approval and `SPY_LIVE=1` are required; execution runs the deterministic risk gate before calling Robinhood MCP.
 
-Live execution is gated behind `SPY_LIVE=1` with a hard share ramp cap; equity-only (Robinhood hasn't enabled agentic options ordering for this account yet).
+## Scheduled Prototype
+
+`cma_lab/run_basket.sh` refreshes analysis, runs one committee debate per basket ticker, and sweeps simulated positions. The LaunchAgent is `cma_lab/launchd/com.sidd.spy.basket.plist`; it runs weekdays at 07:40 local time when installed and the Mac is awake. It sets `SPY_SIM_ONLY=1`, which downgrades live-tagged proposals to simulation and skips live positions in the sweep.
+
+This is suitable for demonstrating the decision loop, not for unattended real-money execution. Before enabling live automation, broker order acceptance/fill reconciliation and alerting must be implemented; a successful place-order response is not proof of a fill. Equity-only; options orders remain disabled.

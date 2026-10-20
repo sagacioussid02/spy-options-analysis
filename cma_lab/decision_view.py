@@ -60,7 +60,7 @@ def print_engine_header(decision: dict, intent) -> None:
     print(f"  decision : {decision.get('decision')}  "
           f"(score {decision.get('final_score')}, "
           f"confidence {decision.get('confidence')})")
-    print(f"  snapshot : SPY ${decision.get('market_conditions', {}).get('spy_price')} "
+    print(f"  snapshot : {intent.underlying} ${decision.get('market_conditions', {}).get('spy_price')} "
           f"at {decision.get('timestamp')}  (trend "
           f"{decision.get('market_conditions', {}).get('trend')})")
     print(f"  intent   : {intent.side} {intent.quantity:g} {intent.underlying} "
@@ -73,17 +73,17 @@ def print_engine_header(decision: dict, intent) -> None:
 def engine_context_kickoff(decision: dict, intent) -> str:
     mc = decision.get("market_conditions", {})
     return (
-        "Here is my SPY decision engine's latest signal (snapshot may be stale):\n"
+        f"Here is my {intent.underlying} decision engine's latest signal (snapshot may be stale):\n"
         f"- decision: {decision.get('decision')} "
         f"(score {decision.get('final_score')}, confidence {decision.get('confidence')})\n"
-        f"- snapshot SPY price: ${mc.get('spy_price')} at {decision.get('timestamp')}\n"
+        f"- snapshot {intent.underlying} price: ${mc.get('spy_price')} at {decision.get('timestamp')}\n"
         f"- derived intent: {intent.side} {intent.quantity:g} {intent.underlying} "
         f"{intent.entry_style}"
         + (f" at a limit of ${intent.limit_price:g}" if intent.limit_price else "")
         + f"; take-profit ${intent.take_profit:g}, stop ${intent.stop_loss:g}\n\n"
         "Using ONLY your read tools, fetch live account + market data and write a "
         "SHORT briefing that CROSS-CHECKS this engine lean against reality:\n"
-        "- Is the live SPY quote close to the engine's snapshot price, or has it "
+        f"- Is the live {intent.underlying} quote close to the engine's snapshot price, or has it "
         "drifted (is the signal stale)?\n"
         f"- Would the suggested entry"
         + (f" (limit ${intent.limit_price:g})" if intent.limit_price else "")
@@ -108,22 +108,38 @@ def main() -> None:
     vault_id = get_or_create_vault()
     ensure_robinhood_credential(vault_id)
 
-    session = client().beta.sessions.create(
-        agent=agent_id,
-        environment_id=env_id,
-        vault_ids=[vault_id],
-        title="decision view",
-    )
-    print(f"LIVE BRIEFING (read-only agent {agent_id})")
-    print(f"  watch live: {console_url(session.id)}\n")
+    for attempt in range(2):
+        vault_id = get_or_create_vault()
+        ensure_robinhood_credential(vault_id)
+        session = client().beta.sessions.create(
+            agent=agent_id,
+            environment_id=env_id,
+            vault_ids=[vault_id],
+            title="decision view",
+        )
+        print(f"LIVE BRIEFING (read-only agent {agent_id})")
+        print(f"  watch live: {console_url(session.id)}\n")
 
-    # verbose=False => print only the agent's briefing text, not raw events.
-    drive_session_with_approval(
-        session.id,
-        kickoff_text=engine_context_kickoff(decision, intent),
-        approve_fn=lambda name, inp: (False, "Read-only: no actions permitted."),
-        verbose=False,
-    )
+        try:
+            # verbose=False => print only the agent's briefing text, not raw events.
+            drive_session_with_approval(
+                session.id,
+                kickoff_text=engine_context_kickoff(decision, intent),
+                approve_fn=lambda name, inp: (False, "Read-only: no actions permitted."),
+                verbose=False,
+            )
+            break
+        except RuntimeError as exc:
+            if attempt or "Robinhood MCP authentication failed" not in str(exc):
+                raise
+            print("\n[auth] Robinhood invalidated its authorization. Starting the "
+                  "interactive reauthorization now; complete sign-in/consent in "
+                  "your browser. No order will be placed.")
+            subprocess.run(
+                [sys.executable, str(Path(__file__).with_name("chunk3_get_robinhood_token.py"))],
+                cwd=str(REPO_ROOT),
+                check=True,
+            )
 
     print("\n" + "=" * 64)
     report_cost(session.id, model="claude-haiku-4-5", label=f"{TICKER}:decision_view")

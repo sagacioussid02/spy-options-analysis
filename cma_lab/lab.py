@@ -551,7 +551,15 @@ def drive_session_with_approval(
                         print(f"    agent: {block.text}")
 
             elif event.type == "session.error":
-                print(f"    [SESSION ERROR] {getattr(event, 'error', event)}")
+                error = getattr(event, "error", event)
+                message = str(error)
+                print(f"    [SESSION ERROR] {message}")
+                if ("mcp_authentication_failed_error" in message.lower()
+                        or "credential has been invalidated" in message.lower()):
+                    raise RuntimeError(
+                        "Robinhood MCP authentication failed. Reauthorize with "
+                        ".venv/bin/python cma_lab/chunk3_get_robinhood_token.py"
+                    ) from None
 
             elif event.type == "session.status_terminated":
                 break
