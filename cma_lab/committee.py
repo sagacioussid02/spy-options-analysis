@@ -529,11 +529,14 @@ def make_h_pm_propose(debate_id: str):
     def _h(inp: dict) -> str:
         inp = dict(inp)
         inp["debate_id"] = debate_id
-        inp.setdefault("mode", "sim")  # committee's default; execution.py may
-                                        # still downgrade live->sim internally
-                                        # (low-conviction exploration) — so the
-                                        # ACTUAL mode is read back below, never
-                                        # assumed from this input.
+        # Default is LIVE: a sim default meant execute_autonomous (the only
+        # path that places a real order) was never reached and no trade ever
+        # hit the broker account. Live is still bounded by SPY_LIVE arming,
+        # the $30 notional cap, the 1-share ramp cap, the sleeve exposure cap
+        # and risk_gate; execution.py may still downgrade live->sim (trial
+        # hypotheses, low-conviction exploration), so the ACTUAL mode is read
+        # back below, never assumed from this input.
+        inp.setdefault("mode", "live")
         result_msg = h_propose(inp)
         if result_msg.startswith("Proposal rejected"):
             return result_msg
@@ -550,6 +553,10 @@ def make_h_pm_propose(debate_id: str):
         # explanatory message and leaves the entry status='proposed', same
         # as the old always-queue behavior.
         exec_msg = execute_autonomous(entry)
+        # Persist why it did/didn't fill — previously a skipped live order left
+        # no trace beyond a stdout line nobody read.
+        J._update(entry["id"], human_notes=(entry.get("human_notes", "") + " [exec] "
+                                            + exec_msg).strip()[:600])
         return result_msg + " " + exec_msg
     return _h
 
@@ -610,7 +617,24 @@ def _quote_for(symbol: str):
 
 
 # ------------------------------ session driver (non-interactive) -------------
-def _run_session(agent_id: str, env_id: str, vault_id: str, *, title: str,
+def _run_session(*args, **kwargs) -> tuple[str, dict]:
+    """Retry wrapper: the event stream gets 'Connection reset by peer' fairly
+    often and used to kill the whole debate (so no PM, no trade). Retry with a
+    fresh session."""
+    import time
+    import httpx
+    last = None
+    for attempt in range(3):
+        try:
+            return _run_session_once(*args, **kwargs)
+        except httpx.TransportError as ex:
+            last = ex
+            print(f"\n[retry] stream dropped ({ex}); attempt {attempt + 1}/3")
+            time.sleep(3 * (attempt + 1))
+    raise last
+
+
+def _run_session_once(agent_id: str, env_id: str, vault_id: str, *, title: str,
                   kickoff_text: str, handlers: dict, capture: set[str],
                   require_one_of: Optional[set[str]] = None,
                   max_nudges: int = 1) -> tuple[str, dict]:
