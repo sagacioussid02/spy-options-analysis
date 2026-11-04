@@ -122,16 +122,17 @@ def main():
         print()
         
         # Save to database
-        db.save_engine_run(context.final_decision)
-        print("✓ Decision saved to database")
-        print()
-        
-        # Update dashboard
-        print("🎨 Updating dashboard...")
-        dashboard = DashboardUpdater()
-        if dashboard.update():
-            print(f"✓ Dashboard ready at: {dashboard.dashboard_path}")
-        print()
+        if os.environ.get("SPY_ANALYST_RUN") != "1":
+            db.save_engine_run(context.final_decision)
+            print("✓ Decision saved to database")
+            print()
+
+            # Update dashboard
+            print("🎨 Updating dashboard...")
+            dashboard = DashboardUpdater(reports_dir=config.REPORTS_DIR)
+            if dashboard.update():
+                print(f"✓ Dashboard ready at: {dashboard.dashboard_path}")
+            print()
         
     except Exception as e:
         print(f"❌ Error during execution: {e}")

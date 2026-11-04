@@ -142,21 +142,22 @@ def evaluate_close(symbol: str, quantity: float, cfg: RiskConfig) -> RiskDecisio
     NOT the same path evaluate() uses for opening orders: allowed_sides is
     hard-locked to buy-only (see RiskConfig) so no LLM-callable tool can
     ever place a sell — this exists only for the host-side, non-LLM close
-    path, and only checks the two things that actually matter for closing
-    a position you already hold: the kill switch, and that you're not
-    somehow trying to sell more than the hard per-order ceiling allows."""
+    path, and only checks the things that matter for closing a position you
+    already hold: the kill switch, and that you're not trying to sell more
+    than the hard per-order ceiling allows."""
     if cfg.kill_switch:
         return RiskDecision(False, ["KILL SWITCH active — all order activity blocked"])
     symbol = (symbol or "").upper()
-    whitelist = {s.upper() for s in cfg.symbol_whitelist}
-    if not symbol or symbol not in whitelist:
-        return RiskDecision(False, [f"symbol {symbol!r} not in whitelist {sorted(whitelist)}"])
+    # No whitelist check: this only closes a position the journal already holds,
+    # and a ticker dropped from the basket must still be sellable.
+    if not symbol:
+        return RiskDecision(False, ["missing symbol"])
     qty = _num(quantity)
     if qty is None or qty <= 0:
         return RiskDecision(False, [f"quantity {quantity!r} must be a positive number"])
     if qty > HARD_MAX_QUANTITY:
         return RiskDecision(False, [f"quantity {qty:g} exceeds hard ceiling {HARD_MAX_QUANTITY:g}"])
-    return RiskDecision(True, ["closing sell passes kill-switch + whitelist + quantity checks"])
+    return RiskDecision(True, ["closing sell passes kill-switch + quantity checks"])
 
 
 # ===================== runtime overrides (copilot-tweakable) =================

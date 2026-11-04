@@ -13,6 +13,7 @@ import re
 import uuid
 
 import events
+import order_state
 import sleeve
 from journal import JournalValidationError, TradeJournal
 from lab import TICKER, account_standing, lab_env, mcp_call_tool
@@ -35,6 +36,11 @@ ACCOUNT = lab_env("ROBINHOOD_ACCOUNT_NUMBER")  # the agentic_allowed account
 AUTONOMOUS_MAX_NOTIONAL = 30.0
 # Oversized live buys are shrunk to this (fractional, market) instead of queuing.
 AUTONOMOUS_TARGET_NOTIONAL = 25.0
+# Trial-status playbook hypotheses may trade live, but only at this tiny size,
+# so an unproven idea earns real-fill evidence without real money at stake.
+# TRIAL_LIVE_MIN_TRIALS = closed trials required first (0 = live from the start).
+TRIAL_MAX_NOTIONAL = 10.0
+TRIAL_LIVE_MIN_TRIALS = 0
 
 J = TradeJournal()
 
@@ -66,17 +72,20 @@ def h_propose(inp: dict) -> str:
         mode = "sim"
         notes.append("Downgraded to sim: SPY_SIM_ONLY is enabled for this run.")
 
-    # Trial hypotheses are sim-only until they earn live eligibility by the
-    # deterministic playbook rule (see playbook.py) — an untested idea doesn't
-    # get near real money just because conviction sounds high.
+    # Trial hypotheses trade live only at the tiny TRIAL_MAX_NOTIONAL size (enforced
+    # in execute_autonomous); until TRIAL_LIVE_MIN_TRIALS closed trials they stay sim.
     hypothesis_id = inp.get("hypothesis_id")
     if hypothesis_id and mode == "live":
         from playbook import Playbook
         hyp = Playbook().get(hypothesis_id)
         if hyp and hyp.get("status") == "trial":
-            mode = "sim"
-            notes.append("Downgraded to sim: trial hypotheses are sim-only until "
-                         "they graduate to active.")
+            n = (hyp.get("trials") or {}).get("n", 0)
+            if n < TRIAL_LIVE_MIN_TRIALS:
+                mode = "sim"
+                notes.append(f"Downgraded to sim: trial hypothesis has {n} closed "
+                             f"trials, needs {TRIAL_LIVE_MIN_TRIALS} for live.")
+            else:
+                notes.append(f"Trial hypothesis: live size capped at ${TRIAL_MAX_NOTIONAL:.0f}.")
 
     # Live exploration constraint: off-book gut calls don't get to skip the
     # human-approval lane freely — they need real conviction, and even then
@@ -318,7 +327,36 @@ def execute_approved(entry: dict) -> str:
     return f"{mode} fill: {entry['quantity']:g} {entry['symbol']} @ ${float(fill):.2f}. Journaled as executed."
 
 
-def execute_autonomous(entry: dict) -> str:
+def _journal_live_buy(entry: dict, raw: str) -> str:
+    """Record a placed live buy by what the broker reports, not by assuming a
+    fill: a market order can be queued/unconfirmed (or rejected) at the moment
+    place_equity_order returns. Only a "filled" order becomes status=executed;
+    anything pending is journaled as submitted and settled by sweep's
+    reconcile pass."""
+    ref = str(uuid.uuid5(uuid.NAMESPACE_OID, entry["id"]))
+    order = order_state.match_record(raw, ref_id=ref) or order_state.match_record(raw)
+    if order is None:
+        J._update(entry["id"], status="reconciliation_required", broker_order_ref_id=ref)
+        return ("order placed but the broker response was unparseable — marked "
+                "reconciliation_required; sweep will look it up by ref_id.")
+    kind = order_state.classify(order)
+    ids = dict(broker_order_id=str(order["id"]), broker_order_state=str(order["state"]),
+               broker_order_ref_id=ref)
+    qty = order_state.filled_quantity(order)
+    px = order_state.average_price(order) or entry.get("limit_price") or entry.get("snapshot_price")
+    if kind == "filled":
+        J.mark_executed(entry["id"], fill_price=float(px), filled_qty=qty or float(entry["quantity"]),
+                        broker_order_id=ids["broker_order_id"], broker_order_state=ids["broker_order_state"])
+        J._update(entry["id"], broker_order_ref_id=ref)
+        return f"FILLED {qty or float(entry['quantity']):g} {entry['symbol']} @ ${float(px):.2f}."
+    if kind == "rejected":
+        J._update(entry["id"], status="rejected", **ids)
+        return f"broker {order['state']} the order — nothing was bought."
+    J._update(entry["id"], status=kind, **ids)
+    return f"order {order['state']} at the broker — journaled as {kind}; sweep will reconcile the fill."
+
+
+def execute_autonomous(entry: dict, *, allow_resize: bool = True) -> str:
     """Committee proposals under AUTONOMOUS_MAX_NOTIONAL execute for real with
     NO human confirmation — this is the one path in the whole codebase that
     places a live order without a typed "LIVE". Called only from
@@ -335,14 +373,24 @@ def execute_autonomous(entry: dict) -> str:
     if not ACCOUNT:
         return "No ROBINHOOD_ACCOUNT_NUMBER configured — cannot place a live order."
 
+    max_notional, target_notional = AUTONOMOUS_MAX_NOTIONAL, AUTONOMOUS_TARGET_NOTIONAL
+    if entry.get("hypothesis_id"):
+        from playbook import Playbook
+        hyp = Playbook().get(entry["hypothesis_id"])
+        if hyp and hyp.get("status") == "trial":
+            max_notional = target_notional = TRIAL_MAX_NOTIONAL
+
     est_price = entry.get("limit_price") or _live_price(entry["symbol"]) or entry.get("snapshot_price") or 0
     notional = float(est_price) * float(entry["quantity"])
-    if notional > AUTONOMOUS_MAX_NOTIONAL and entry["side"] == "buy" and float(est_price) > 0:
+    if notional > max_notional and entry["side"] == "buy" and float(est_price) > 0:
+        if not allow_resize:
+            return (f"${notional:.2f} exceeds the ${max_notional:.0f} autonomous cap; "
+                    "no order submitted because this request does not permit quantity resizing.")
         # Shrink to a fractional market order rather than punting to a human:
         # the committee proposes whole shares, which for a $50 sleeve are
         # nearly always over the cap. Robinhood only allows fractional shares
         # as market orders, so a limit entry becomes a market entry.
-        qty = math.floor(AUTONOMOUS_TARGET_NOTIONAL / float(est_price) * 1e6) / 1e6
+        qty = math.floor(target_notional / float(est_price) * 1e6) / 1e6
         if qty <= 0:
             return "Fractional resize rounds to zero shares — leaving queued."
         note = (f"Autonomous fractional resize: {entry['quantity']:g} -> {qty:g} sh "
@@ -352,8 +400,8 @@ def execute_autonomous(entry: dict) -> str:
         entry.update(quantity=qty, entry_style="market")
         print(f"  [autonomous] {note}")
         notional = float(est_price) * qty
-    if notional > AUTONOMOUS_MAX_NOTIONAL:
-        return (f"${notional:.2f} exceeds the ${AUTONOMOUS_MAX_NOTIONAL:.0f} autonomous cap — "
+    if notional > max_notional:
+        return (f"${notional:.2f} exceeds the ${max_notional:.0f} autonomous cap — "
                 f"leaving queued for human /approve via advisor.py.")
     if float(entry["quantity"]) > LIVE_MAX_SHARES:
         return (f"Live ramp cap: live orders are limited to {LIVE_MAX_SHARES} share(s) — "
@@ -363,8 +411,14 @@ def execute_autonomous(entry: dict) -> str:
     # basket of tickers from stacking past the sleeve in aggregate. Valued
     # at each open live position's own fill price x filled qty (no extra
     # live-quote calls — this is a cap check, not a mark-to-market).
-    open_notional = sum((e.get("fill_price") or 0) * (e.get("filled_qty") or 0)
-                        for e in J.open_positions() if e.get("mode") == "live")
+    # Orders still in flight at the broker count too (at their entry price),
+    # otherwise a queued order is invisible to the cap until it fills.
+    in_flight = {e["id"]: e for e in J.open_positions() + J.orders_needing_reconciliation()
+                 if e.get("mode") == "live"}
+    open_notional = sum(
+        (e.get("fill_price") or e.get("limit_price") or e.get("snapshot_price") or 0)
+        * (e.get("filled_qty") or e.get("quantity") or 0)
+        for e in in_flight.values())
     sleeve_cap = sleeve.sleeve_value()
     if open_notional + notional > sleeve_cap:
         events.log_event("cap_blocked", symbol=entry["symbol"], notional=round(notional, 2),
@@ -389,8 +443,6 @@ def execute_autonomous(entry: dict) -> str:
         return f"Autonomous LIVE place failed: {ex}. Proposal stays pending (not executed)."
     print(f"  [autonomous order] {raw[:400]}")
 
-    fill = _extract_price(raw) or entry.get("limit_price") or entry.get("snapshot_price")
-    J.mark_executed(entry["id"], fill_price=float(fill), filled_qty=float(entry["quantity"]))
-    return (f"AUTONOMOUS LIVE fill: {entry['quantity']:g} {entry['symbol']} @ ${float(fill):.2f} "
-            f"(~${notional:.2f}, under the ${AUTONOMOUS_MAX_NOTIONAL:.0f} cap). "
-            f"Journaled as executed — no human confirmation.")
+    outcome = _journal_live_buy(entry, raw)
+    return (f"AUTONOMOUS LIVE {entry['quantity']:g} {entry['symbol']} (~${notional:.2f}, "
+            f"under the ${max_notional:.0f} cap): {outcome} No human confirmation.")

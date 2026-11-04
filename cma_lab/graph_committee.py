@@ -46,6 +46,8 @@ from committee import (
     _debate_track_record,
     _read_beliefs,
     _run_session,
+    _operator_report,
+    _notify_operator,
     deploy_bear,
     deploy_bull,
     deploy_pm,
@@ -218,14 +220,31 @@ def record_debate(state: CommitteeState) -> dict:
     debate_id = state["debate_id"]
     debate = {
         "id": debate_id,
+        "ticker": TICKER,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "engine_snapshot": state["context"]["engine_snapshot"],
         "bull_case": state.get("bull_case", {}),
         "bear_case": state.get("bear_case", {}),
         "pm_decision": state.get("pm_decision", {}),
     }
+    entries = [e for e in J._load() if e.get("debate_id") == debate_id]
+    shadows = [e for e in ShadowStore()._load() if e.get("debate_id") == debate_id]
+    report = _operator_report(
+        debate,
+        entries[-1] if entries else None,
+        shadows[-1] if shadows else None,
+    )
+    debate["operator_report"] = report["text"]
+    debate["notification"] = report["notification"]
     save_debate(debate)
+    print("\n" + report["text"])
+    print("\nSTRUCTURED_NOTIFICATION " + json.dumps(report["notification"], sort_keys=True))
     print(f"\n=== debate {debate_id} recorded: {debate['pm_decision'].get('decision')} ===")
+    delivery = _notify_operator(
+        report["notification_title"], report["notification_body"], report["notification"]
+    )
+    debate["notification_delivery"] = delivery
+    save_debate(debate)
     return {}
 
 

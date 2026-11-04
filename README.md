@@ -21,3 +21,15 @@ This repo runs multi-ticker analysis through **Claude Managed Agents (CMA)** and
 `cma_lab/run_basket.sh` refreshes analysis, runs one committee debate per basket ticker, and sweeps simulated positions. The LaunchAgent is `cma_lab/launchd/com.sidd.spy.basket.plist`; it runs weekdays at 07:40 local time when installed and the Mac is awake. It sets `SPY_SIM_ONLY=1`, which downgrades live-tagged proposals to simulation and skips live positions in the sweep.
 
 This is suitable for demonstrating the decision loop, not for unattended real-money execution. Before enabling live automation, broker order acceptance/fill reconciliation and alerting must be implemented; a successful place-order response is not proof of a fill. Equity-only; options orders remain disabled.
+
+## Sutra MCP Server
+
+This repository includes a local stdio MCP server at `cma_lab/mcp_server.py`.
+It exposes read-only desk and broker status, plus a staged
+`analyze_trade_request` → `get_trade_analysis_details` → `execute_confirmed_trade`
+workflow. Analysis and backtest results are cached; the initial wait is capped
+at two minutes. The analyst never places an order. Execution is a separate,
+explicitly confirmed action guarded by existing risk checks; it is sim-only when
+`SPY_LIVE` is not armed. Raw broker order tools are not exposed. See
+[docs/guides/SPY_DESK_MCP.md](docs/guides/SPY_DESK_MCP.md) for Sutra setup and
+the complete tool contract.

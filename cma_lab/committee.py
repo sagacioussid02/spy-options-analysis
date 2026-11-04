@@ -104,6 +104,275 @@ def save_debate(debate: dict) -> None:
     store().save("debates", docs)
 
 
+def _compact(text, limit: int = 220) -> str:
+    text = " ".join(str(text or "").split())
+    return text if len(text) <= limit else text[:limit - 3].rstrip() + "..."
+
+
+def _case_report(label: str, case: dict) -> list[str]:
+    if not case:
+        return [f"{label}: no structured case captured."]
+    confidence = case.get("confidence")
+    confidence_text = f", confidence {float(confidence):.0%}" if isinstance(confidence, (int, float)) else ""
+    lines = [f"{label} ({case.get('stance', 'stance unavailable')}{confidence_text}): "
+             f"{_compact(case.get('thesis'), 260)}"]
+    evidence = case.get("key_evidence") or []
+    if evidence:
+        lines.append(f"  Drivers: {_compact('; '.join(map(str, evidence[:2])), 260)}")
+    return lines
+
+
+def _operator_report(debate: dict, journal_entry: Optional[dict],
+                     shadow_entry: Optional[dict]) -> dict:
+    engine = debate.get("engine_snapshot")
+    if isinstance(engine, str):
+        try:
+            engine = json.loads(engine)
+        except (json.JSONDecodeError, TypeError):
+            engine = {}
+    engine = engine if isinstance(engine, dict) else {}
+    engine_decision = (engine.get("decision")
+                       or (engine.get("recommendation") or {}).get("action")
+                       or "unavailable")
+    score = engine.get("final_score")
+    confidence = engine.get("confidence")
+    engine_line = f"Engine signal: {engine_decision}"
+    if score is not None:
+        engine_line += f" | score {score}"
+    if confidence:
+        engine_line += f" | confidence {confidence}"
+
+    decision = debate.get("pm_decision") or {}
+    ticker = str(debate.get("ticker") or "UNKNOWN").upper()
+    action = str(decision.get("decision") or "no_decision").upper()
+    trade = None
+    lines = [f"SIGNAL REPORT — {ticker}", engine_line]
+    explanations = (engine.get("recommendation") or {}).get("explanation") or []
+    if explanations:
+        lines.append(f"Engine drivers: {_compact('; '.join(map(str, explanations[:2])), 260)}")
+
+    if journal_entry:
+        side = str(journal_entry.get("side") or "buy").upper()
+        symbol = str(journal_entry.get("symbol") or ticker).upper()
+        quantity = float(journal_entry.get("quantity") or 0)
+        mode = str(journal_entry.get("mode") or "unknown").upper()
+        status = str(journal_entry.get("status") or "unknown")
+        broker_state = journal_entry.get("broker_order_state")
+        order_status = f", broker {broker_state}" if broker_state else ""
+        lines.append(f"Committee signal: {side} {quantity:g} {symbol} | {mode} / {status}{order_status}")
+        pm_reason = journal_entry.get("thesis") or "proposal recorded"
+        action = side
+        trade = {
+            "side": side.lower(),
+            "symbol": symbol,
+            "quantity": quantity,
+            "mode": mode.lower(),
+            "journal_status": status,
+            "broker_status": broker_state,
+            "filled": status in ("executed", "open") or broker_state == "filled",
+        }
+        notification_body = (f"{side} {quantity:g} {symbol}; {mode.lower()} / {status}{order_status}. "
+                             f"PM: {_compact(pm_reason, 150)}")
+    elif decision.get("decision") == "pass":
+        action = "PASS"
+        lines.append("Committee signal: PASS | no order placed")
+        hypothetical = (debate.get("bull_case") or {}).get("suggested_trade") or {}
+        hypothetical_text = ""
+        if hypothetical.get("side") and hypothetical.get("side") != "none":
+            trade = {
+                "side": str(hypothetical.get("side")).lower(),
+                "symbol": str(hypothetical.get("symbol") or ticker).upper(),
+                "quantity": float(hypothetical.get("quantity") or 0),
+                "mode": None,
+                "journal_status": "not_placed",
+                "broker_status": None,
+                "filled": False,
+            }
+            hypothetical_text = (f"Bull alternative: {str(hypothetical.get('side')).upper()} "
+                                 f"{float(hypothetical.get('quantity') or 0):g} "
+                                 f"{str(hypothetical.get('symbol') or ticker).upper()} (not placed)")
+            lines.append(hypothetical_text)
+        pm_reason = (decision.get("reason") or (shadow_entry or {}).get("reason")
+                     or "PM passed without a recorded reason")
+        notification_body = f"PASS {ticker}; no order. {hypothetical_text} PM: {_compact(pm_reason, 140)}"
+    else:
+        pm_reason = decision.get("note") or "; ".join(decision.get("errors") or []) or action
+        lines.append(f"Committee signal: {action} | no order confirmed")
+        notification_body = f"{action} {ticker}; no order confirmed. {_compact(pm_reason, 150)}"
+
+    lines.extend(_case_report("Bull", debate.get("bull_case") or {}))
+    lines.extend(_case_report("Bear", debate.get("bear_case") or {}))
+    lines.append(f"PM reasoning: {_compact(pm_reason, 300)}")
+
+    lesson_text = h_lessons({})
+    lesson_lines = [
+        _compact(line.lstrip("-* "), 220)
+        for line in str(lesson_text or "").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+        and "no lessons recorded" not in line.lower()
+    ][:2]
+    if lesson_lines:
+        lines.append("Existing desk learnings (not necessarily new today):")
+        lines.extend(f"  - {lesson}" for lesson in lesson_lines)
+    else:
+        lines.append("Desk learnings: none recorded yet.")
+
+    notification = {
+        "event": "spy_desk_signal",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "ticker": ticker,
+        "engine": {
+            "signal": engine_decision,
+            "score": score,
+            "confidence": confidence,
+            "drivers": explanations[:2],
+        },
+        "committee": {
+            "decision": action,
+            "reason": _compact(pm_reason, 500),
+        },
+        "trade": trade,
+        "agents": {
+            "bull": _notification_case(debate.get("bull_case") or {}),
+            "bear": _notification_case(debate.get("bear_case") or {}),
+        },
+        "learnings": lesson_lines,
+    }
+    order_text = "none"
+    if trade:
+        order_text = (f"{trade['side'].upper()} {trade['quantity']:g} {trade['symbol']} "
+                      f"{trade.get('mode') or ''} {trade['journal_status']}").strip()
+    toast_body = _compact(
+        f"ENGINE {engine_decision} ({score if score is not None else 'n/a'}/{confidence or 'n/a'}) | "
+        f"PM {action} | ORDER {order_text} | {_compact(pm_reason, 120)}",
+        240,
+    )
+    return {
+        "text": "\n".join(lines),
+        "notification": notification,
+        "notification_title": f"{ticker}: {action}",
+        "notification_body": toast_body,
+    }
+
+
+def _notification_case(case: dict) -> dict:
+    if not case:
+        return {"stance": None, "confidence": None, "summary": "No structured case captured."}
+    confidence = case.get("confidence")
+    return {
+        "stance": case.get("stance"),
+        "confidence": confidence,
+        "summary": _compact(case.get("thesis"), 500),
+        "drivers": [str(item) for item in (case.get("key_evidence") or [])[:2]],
+    }
+
+
+def _mobile_notification_body(notification: dict) -> str:
+    engine = notification.get("engine") or {}
+    committee = notification.get("committee") or {}
+    trade = notification.get("trade") or {}
+    agents = notification.get("agents") or {}
+    ticker = notification.get("ticker", "UNKNOWN")
+    order_text = "none"
+    if trade:
+        order_text = (f"{trade.get('side', '').upper()} {trade.get('quantity', 0):g} "
+                      f"{trade.get('symbol', ticker)} {trade.get('journal_status', 'unknown')} "
+                      f"filled={bool(trade.get('filled'))}")
+    line_one = (f"{ticker} | Engine {engine.get('signal', 'n/a')} "
+                f"{engine.get('score', 'n/a')}/{engine.get('confidence', 'n/a')} | "
+                f"PM {committee.get('decision', 'n/a')} | Order {order_text}")
+    bull = agents.get("bull") or {}
+    bear = agents.get("bear") or {}
+    why_parts = [f"PM: {_compact(committee.get('reason'), 130)}"]
+    if bull.get("summary"):
+        why_parts.append(f"Bull: {_compact(bull['summary'], 80)}")
+    if bear.get("summary"):
+        why_parts.append(f"Bear: {_compact(bear['summary'], 80)}")
+    learnings = notification.get("learnings") or []
+    if learnings:
+        why_parts.append(f"Lesson: {_compact(learnings[0], 80)}")
+    line_two = "Why: " + " | ".join(why_parts)
+    return _compact(line_one, 240) + "\n" + _compact(line_two, 240)
+
+
+def _send_ntfy_notification(title: str, notification: dict) -> dict:
+    import re
+    import urllib.error
+    import urllib.parse
+    import urllib.request
+    from urllib.parse import urlsplit
+
+    from lab import lab_env
+
+    topic = (lab_env("SPY_NTFY_TOPIC") or "").strip()
+    if not topic:
+        return {"status": "disabled", "detail": "SPY_NTFY_TOPIC is not configured."}
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", topic):
+        return {"status": "error", "detail": "SPY_NTFY_TOPIC must be 1-128 letters, digits, underscores, or hyphens."}
+
+    server = (lab_env("SPY_NTFY_SERVER", "https://ntfy.sh") or "https://ntfy.sh").strip().rstrip("/")
+    parsed = urlsplit(server)
+    if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password \
+            or parsed.query or parsed.fragment:
+        return {"status": "error", "detail": "SPY_NTFY_SERVER must be an HTTPS base URL without credentials, query, or fragment."}
+
+    url = f"{server}/{urllib.parse.quote(topic, safe='')}"
+    data = _mobile_notification_body(notification).encode("utf-8")
+    headers = {
+        "Title": title.replace("\r", " ").replace("\n", " ")[:120],
+        "Priority": "default",
+        "Content-Type": "text/plain; charset=utf-8",
+    }
+    token = (lab_env("SPY_NTFY_TOKEN") or "").strip()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    request = urllib.request.Request(url, data=data, headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(request, timeout=8) as response:
+            response.read()
+    except urllib.error.HTTPError as exc:
+        return {"status": "error", "detail": f"ntfy returned HTTP {exc.code}."}
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "error", "detail": _compact(f"ntfy request failed: {exc}", 300)}
+    return {"status": "sent", "detail": f"Notification posted to configured ntfy server ({parsed.hostname})."}
+
+
+def _notify_operator(title: str, body: str, notification: Optional[dict] = None) -> dict:
+    import shutil
+    import subprocess
+
+    delivery = {"ntfy": _send_ntfy_notification(title, notification or {})}
+    osascript = shutil.which("osascript")
+    if not osascript:
+        message = "osascript not found; structured notification remains in debate record"
+        print(f"Notification unavailable: {message}.")
+        delivery["macos"] = {"status": "unavailable", "detail": message}
+        return delivery
+
+    def quote(value: str) -> str:
+        return '"' + value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ") + '"'
+
+    script = f"display notification {quote(body)} with title {quote(title)}"
+    try:
+        result = subprocess.run([osascript, "-e", script], capture_output=True,
+                                text=True, timeout=5, check=False)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        message = str(exc)
+        print(f"Notification unavailable: {message}; structured record remains saved.")
+        delivery["macos"] = {"status": "error", "detail": _compact(message, 300)}
+    else:
+        if result.returncode:
+            message = _compact(result.stderr, 300)
+            print(f"Notification unavailable: {message}; structured record remains saved.")
+            delivery["macos"] = {"status": "error", "detail": message}
+        else:
+            delivery["macos"] = {
+                "status": "submitted_to_notification_center",
+                "detail": "osascript returned success; macOS display permissions are not verifiable by this process.",
+            }
+    return delivery
+
+
 # ------------------------------ desk-activity nudge (task 3.5) ---------------
 def _activity_status() -> str:
     recent = load_debates()[-5:]
@@ -251,10 +520,11 @@ SUBMIT_CASE_TOOL = {
 
 PROPOSE_TOOL = {
     "type": "custom", "name": "propose_trade",
-    "description": "Record a trade proposal. mode='sim' executes immediately in "
-                   "the autonomous simulation lane (no human step); mode='live' "
-                   "queues it for human approval via advisor.py. Every proposal "
-                   "must be falsifiable: kill_criteria + a full exit_plan.",
+    "description": "Record a trade proposal. mode='live' (the default) places a "
+                   "REAL order automatically when the host-side caps allow it "
+                   "(small notional, risk gate, sleeve cap); mode='sim' is paper "
+                   "only. Every proposal must be falsifiable: kill_criteria + a "
+                   "full exit_plan.",
     "input_schema": {
         "type": "object",
         "properties": {
@@ -270,12 +540,13 @@ PROPOSE_TOOL = {
             "kill_criteria": {"type": "string", "description": "What specific price "
                               "action or event would prove this thesis wrong?"},
             "exit_plan": _EXIT_PLAN_SCHEMA,
-            "mode": {"type": "string", "description": "'sim' (default, autonomous) "
-                     "or 'live' (queues for human approval)"},
+            "mode": {"type": "string", "description": "'live' (default): real order, "
+                     "auto-placed within the host caps. 'sim': paper only — "
+                     "use it only when you want no real money at risk."},
             "hypothesis_id": {"type": "string", "description": "If this trade comes "
                      "from a registered playbook hypothesis, its id — links the "
                      "outcome back to that hypothesis's trial stats. Trial-status "
-                     "hypotheses are sim-only regardless of the mode you set here."},
+                     "hypotheses go live at a $10 notional cap."},
             "origin_reason": {"type": "string", "description": "Why this proposal, "
                       "honestly: 'engine_aligned' (evidence lines up with the "
                       "engine's blended lean), 'against_engine' (you're going "
@@ -474,9 +745,8 @@ PM_SYSTEM = (
     "the current exploration-budget status — if it says the desk is "
     "underweight on exploration, that's an invitation, not a demand. If you "
     "size a proposal from a registered playbook hypothesis, pass its "
-    "hypothesis_id — trial-status hypotheses trade sim-only no matter what "
-    "mode you request, until they earn live eligibility by their own track "
-    "record. You'll be shown a calibration table (mean Brier score per "
+    "hypothesis_id — trial-status hypotheses trade live but capped at a tiny "
+    "$10 notional, so unproven ideas still get real-fill evidence. You'll be shown a calibration table (mean Brier score per "
     "persona) AND a debate track record (how often bull_right vs bear_right "
     "graded historically) — weight bull vs bear by both under disagreement, "
     "not by who sounds more confident. You'll also see the Futurist's theses "
@@ -617,20 +887,38 @@ def _quote_for(symbol: str):
 
 
 # ------------------------------ session driver (non-interactive) -------------
+SESSION_TIMEOUT_S = 180   # hard wall-clock limit per agent session attempt
+SESSION_MAX_ATTEMPTS = 2
+
 def _run_session(*args, **kwargs) -> tuple[str, dict]:
     """Retry wrapper: the event stream gets 'Connection reset by peer' fairly
     often and used to kill the whole debate (so no PM, no trade). Retry with a
     fresh session."""
+    import signal
     import time
     import httpx
+
+    def _watchdog(signum, frame):
+        raise httpx.ReadTimeout(f"no session completion within {SESSION_TIMEOUT_S}s")
+
+    # events.stream has no overall deadline: a silently stalled connection
+    # blocked a scheduled run for 7+ hours. SIGALRM turns that into a
+    # TransportError, which the retry below handles with a fresh session.
+    signal.signal(signal.SIGALRM, _watchdog)
     last = None
-    for attempt in range(3):
+    for attempt in range(1, SESSION_MAX_ATTEMPTS + 1):
+        signal.alarm(SESSION_TIMEOUT_S)
         try:
             return _run_session_once(*args, **kwargs)
         except httpx.TransportError as ex:
             last = ex
-            print(f"\n[retry] stream dropped ({ex}); attempt {attempt + 1}/3")
-            time.sleep(3 * (attempt + 1))
+            if attempt < SESSION_MAX_ATTEMPTS:
+                print(f"\n[retry] stream dropped/stalled ({ex}); attempt "
+                      f"{attempt}/{SESSION_MAX_ATTEMPTS}; giving up after "
+                      f"{SESSION_MAX_ATTEMPTS} attempts")
+                time.sleep(3)
+        finally:
+            signal.alarm(0)
     raise last
 
 
@@ -791,9 +1079,16 @@ def run_once() -> dict:
         f"{exploration.status_text()}\n\n"
         "Decide: propose_trade or pass_with_reason."
     )
+    pm_pass_reason = {}
+    pass_handler = make_h_pass(debate_id, bull_case, engine_snapshot)
+
+    def capture_pm_pass(inp: dict) -> str:
+        pm_pass_reason["reason"] = str(inp.get("reason", "")).strip() or "no reason given"
+        return pass_handler(inp)
+
     pm_handlers = {**READ_HANDLERS,
                   "propose_trade": make_h_pm_propose(debate_id),
-                  "pass_with_reason": make_h_pass(debate_id, bull_case, engine_snapshot),
+                  "pass_with_reason": capture_pm_pass,
                   "register_hypothesis": make_h_register_hypothesis("pm"),
                   "log_prediction": make_h_log_prediction("pm", debate_id)}
     _, pm_captured = _run_session(pm_id, env_id, vault_id, title=f"{debate_id}-pm",
@@ -809,8 +1104,10 @@ def run_once() -> dict:
         pm_decision = {"decision": "propose", "journal_id": journal_entries[-1]["id"],
                       "mode": journal_entries[-1].get("mode"),
                       "status": journal_entries[-1].get("status")}
-    elif shadow_entries:
-        pm_decision = {"decision": "pass", "shadow_id": shadow_entries[-1]["id"]}
+    elif pm_pass_reason:
+        pm_decision = {"decision": "pass", "reason": pm_pass_reason["reason"]}
+        if shadow_entries:
+            pm_decision["shadow_id"] = shadow_entries[-1]["id"]
     elif pm_diag.get("errors"):
         # The session hit an MCP/API error (e.g. Robinhood auth) — nothing
         # written is a symptom of that outage, not the PM declining to act.
@@ -834,8 +1131,20 @@ def run_once() -> dict:
         "bear_case": bear_case,
         "pm_decision": pm_decision,
     }
+    journal_entry = journal_entries[-1] if journal_entries else None
+    shadow_entry = shadow_entries[-1] if shadow_entries else None
+    operator_report = _operator_report(debate, journal_entry, shadow_entry)
+    debate["operator_report"] = operator_report["text"]
+    debate["notification"] = operator_report["notification"]
     save_debate(debate)
+    print("\n" + operator_report["text"])
+    print("\nSTRUCTURED_NOTIFICATION " + json.dumps(operator_report["notification"], sort_keys=True))
     print(f"\n=== debate {debate_id} recorded: {pm_decision['decision']} ===")
+    delivery = _notify_operator(operator_report["notification_title"],
+                                operator_report["notification_body"],
+                                operator_report["notification"])
+    debate["notification_delivery"] = delivery
+    save_debate(debate)
     return debate
 
 

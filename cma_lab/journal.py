@@ -39,7 +39,7 @@ class JournalValidationError(ValueError):
 class JournalEntry:
     id: str
     created_at: str
-    status: str                       # proposed|approved|rejected|executed|closed
+    status: str                       # proposed|approved|submitted|executed|closing|closed|rejected
     # --- the thinking ---
     thesis: str                       # why, in plain language
     conviction: float                 # 0..1 — drives (bounded) size
@@ -72,6 +72,12 @@ class JournalEntry:
     closed_at: Optional[str] = None
     reflection: str = ""              # what I expected / what happened / the lesson
     thesis_grade: Optional[str] = None  # right_win|right_loss|wrong_win|wrong_loss
+    broker_order_id: Optional[str] = None
+    broker_order_state: Optional[str] = None
+    broker_order_ref_id: Optional[str] = None
+    closing_order_id: Optional[str] = None
+    closing_order_state: Optional[str] = None
+    closing_order_ref_id: Optional[str] = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -166,9 +172,12 @@ class TradeJournal:
         return self._update(entry_id, status="rejected", human_notes=note)
 
     def mark_executed(self, entry_id: str, *, fill_price: float,
-                      filled_qty: float) -> Optional[dict]:
+                      filled_qty: float, broker_order_id: Optional[str] = None,
+                      broker_order_state: Optional[str] = None) -> Optional[dict]:
         return self._update(entry_id, status="executed", fill_price=fill_price,
-                            filled_qty=filled_qty, executed_at=_now())
+                            filled_qty=filled_qty, executed_at=_now(),
+                            broker_order_id=broker_order_id,
+                            broker_order_state=broker_order_state)
 
     def open_sim(self, entry_id: str, *, fill_price: float,
                  filled_qty: float) -> Optional[dict]:
@@ -203,7 +212,12 @@ class TradeJournal:
         # "executed" = a real live fill (mark_executed); "open" = a sim fill.
         # Both are held positions that sweep must manage and that count
         # toward the live exposure cap.
-        return [e for e in self._load() if e["status"] in ("open", "executed")]
+        return [e for e in self._load()
+                if e["status"] in ("open", "executed", "closing")]
+
+    def orders_needing_reconciliation(self) -> list[dict]:
+        return [e for e in self._load() if e.get("status") in
+                ("submitted", "partially_filled", "closing", "reconciliation_required")]
 
     def summarize(self) -> dict:
         """The learning view: edge by strategy / regime / conviction bucket.

@@ -30,6 +30,7 @@ from typing import Optional
 import uuid
 
 import exit_review
+import order_state
 import sleeve
 from execution import ACCOUNT, _extract_price, _qty_str
 from journal import TradeJournal
@@ -103,7 +104,92 @@ def _close_live_position(entry: dict) -> Optional[float]:
         print(f"  [sweep] {entry['id']}: LIVE close order failed: {ex}")
         return None
     print(f"  [sweep] [close-order] {raw[:400]}")
-    return _extract_price(raw)
+    ref = args["ref_id"]
+    order = order_state.match_record(raw, ref_id=ref) or order_state.match_record(raw)
+    if order is None:
+        J._update(entry["id"], status="closing", closing_order_ref_id=ref)
+        print(f"  [sweep] {entry['id']}: close response unparseable — marked closing, will reconcile")
+        return None
+    kind = order_state.classify(order)
+    if kind == "filled":
+        px = order_state.average_price(order) or _quote(entry["symbol"])
+        J._update(entry["id"], closing_order_id=str(order["id"]),
+                  closing_order_state=str(order["state"]), closing_order_ref_id=ref)
+        return px
+    if kind == "rejected":
+        print(f"  [sweep] {entry['id']}: close order {order['state']} — position stays open")
+        return None
+    J._update(entry["id"], status="closing", closing_order_id=str(order["id"]),
+              closing_order_state=str(order["state"]), closing_order_ref_id=ref)
+    print(f"  [sweep] {entry['id']}: close order {order['state']} — marked closing, will reconcile")
+    return None
+
+
+def _fetch_order(order_id: str) -> Optional[dict]:
+    try:
+        raw = mcp_call_tool("get_equity_orders", {"account_number": ACCOUNT, "order_id": order_id})
+    except Exception as ex:  # noqa: BLE001
+        print(f"  [sweep] order {order_id}: lookup failed: {ex}")
+        return None
+    return order_state.match_record(raw, order_id=order_id)
+
+
+def _finish_close(entry: dict, exit_price: float, why: str) -> None:
+    updated = J.close(entry["id"], exit_price=exit_price, reflection=f"Sweep auto-close: {why}.")
+    _update_playbook(updated)
+    sleeve.record_realized_pnl(updated.get("pnl") or 0.0)
+    print(f"  [sweep] closed {entry['id']}: {why}, pnl={updated.get('pnl')}")
+
+
+def reconcile() -> None:
+    """Settle live orders that were pending when last seen: buys that were
+    queued/partial and sells that were marked closing. Broker state is truth."""
+    if not ACCOUNT:
+        return
+    for entry in J.orders_needing_reconciliation():
+        if entry.get("mode") != "live":
+            continue
+        closing = entry["status"] == "closing"
+        oid = entry.get("closing_order_id") if closing else entry.get("broker_order_id")
+        if not oid:
+            ref = entry.get("closing_order_ref_id") if closing else entry.get("broker_order_ref_id")
+            try:
+                raw = mcp_call_tool("get_equity_orders", {"account_number": ACCOUNT})
+            except Exception as ex:  # noqa: BLE001
+                print(f"  [sweep] {entry['id']}: order list failed: {ex}")
+                continue
+            order = order_state.match_record(raw, ref_id=ref) if ref else None
+        else:
+            order = _fetch_order(oid)
+        if order is None:
+            print(f"  [sweep] {entry['id']}: order not found at broker, still {entry['status']}")
+            continue
+        kind = order_state.classify(order)
+        state = str(order["state"])
+        px = order_state.average_price(order)
+        qty = order_state.filled_quantity(order)
+        if closing:
+            if kind == "filled":
+                _finish_close(entry, px or _quote(entry["symbol"]) or entry["fill_price"],
+                              "closing sell filled")
+            elif kind == "rejected":
+                J._update(entry["id"], status="executed", closing_order_state=state,
+                          closing_order_id=None)
+                print(f"  [sweep] {entry['id']}: closing order {state} — back to open")
+            else:
+                J._update(entry["id"], closing_order_state=state)
+        else:
+            if kind == "filled":
+                J.mark_executed(entry["id"], fill_price=px or entry.get("fill_price") or entry.get("snapshot_price"),
+                                filled_qty=qty or float(entry["quantity"]),
+                                broker_order_id=str(order["id"]), broker_order_state=state)
+                print(f"  [sweep] {entry['id']}: buy filled {qty:g} @ {px}")
+            elif kind == "rejected":
+                J._update(entry["id"], status="rejected", broker_order_state=state)
+                print(f"  [sweep] {entry['id']}: buy {state} — nothing bought")
+            else:
+                J._update(entry["id"], status=kind, broker_order_state=state,
+                          filled_qty=qty or None)
 
 
 def _update_playbook(entry: dict) -> None:
@@ -154,9 +240,14 @@ def run(*, sim_only: bool = False) -> list[dict]:
     if topup:
         print(f"  [sweep] sleeve topup applied: +${topup:.2f}")
 
+    if not sim_only:
+        reconcile()
+
     today = datetime.now(timezone.utc).date()
     closed = []
     for entry in J.open_positions():
+        if entry["status"] == "closing":
+            continue  # a sell is already in flight; reconcile() settles it
         if sim_only and entry.get("mode") == "live":
             print(f"  [sweep] {entry['id']}: live position skipped (--sim-only)")
             continue
@@ -183,11 +274,13 @@ def run(*, sim_only: bool = False) -> list[dict]:
                 continue
             exit_price = fill
 
+        if entry.get("mode") == "live":
+            _finish_close(entry, exit_price, reason)
+            closed.append(J.get(entry["id"]))
+            continue
         updated = J.close(entry["id"], exit_price=exit_price,
                           reflection=f"Sweep auto-close: {reason}.")
         _update_playbook(updated)
-        if entry.get("mode") == "live":
-            sleeve.record_realized_pnl(updated.get("pnl") or 0.0)
         print(f"  [sweep] closed {entry['id']}: {reason}, pnl={updated.get('pnl')}")
         closed.append(updated)
 

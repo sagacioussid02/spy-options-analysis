@@ -372,13 +372,13 @@ class EventDrivenEngine:
                 "confidence": "LOW", "score": 0.5,
                 "skipped": f"{context.ticker} is not an index ticker",
             }
-            report_file = Path(__file__).parent.parent / 'reports' / 'event_driven.json'
+            report_file = Path(config.REPORTS_DIR) / 'event_driven.json'
             with open(report_file, 'w') as f:
                 json.dump(context.event_driven, f, indent=2)
             return context
 
         # Get sentiment data
-        sentiment_file = Path(__file__).parent.parent / 'reports' / 'sentiment.json'
+        sentiment_file = Path(config.REPORTS_DIR) / 'sentiment.json'
         
         try:
             with open(sentiment_file) as f:
@@ -429,7 +429,7 @@ class EventDrivenEngine:
             "impact_summary": self._generate_impact_summary(reactions)
         }
         
-        report_file = Path(__file__).parent.parent / 'reports' / 'event_driven.json'
+        report_file = Path(config.REPORTS_DIR) / 'event_driven.json'
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2)
         

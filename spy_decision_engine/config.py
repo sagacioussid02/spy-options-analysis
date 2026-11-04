@@ -5,7 +5,7 @@ import os
 
 # Directory paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-REPORTS_DIR = os.path.join(BASE_DIR, "reports")
+REPORTS_DIR = os.environ.get("SPY_REPORTS_DIR", os.path.join(BASE_DIR, "reports"))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 CACHE_DIR = os.path.join(DATA_DIR, "cache")
 RAW_DATA_DIR = os.path.join(DATA_DIR, "raw")

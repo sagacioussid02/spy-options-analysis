@@ -6,6 +6,7 @@ The whole point of this file is to encode the ONE rule that matters in CMA:
     Environments and Agents are PERSISTENT, versioned resources.
     You create them ONCE and reuse them by ID. Only Sessions are per-run.
 
+
 So instead of calling agents.create()/environments.create() every time a script
 runs (which silently piles up orphaned resources), we store their IDs in
 cma_lab/cma_state.json and reuse them. That JSON file is your "I already made
@@ -162,7 +163,7 @@ def refresh_robinhood_token() -> Optional[str]:
         ROBINHOOD_TOKEN_ENDPOINT, data=data,
         headers={"Content-Type": "application/x-www-form-urlencoded"})
     try:
-        with urllib.request.urlopen(req) as r:
+        with urllib.request.urlopen(req, timeout=ROBINHOOD_REFRESH_TIMEOUT_S) as r:
             tok = _json.loads(r.read().decode())
     except Exception as e:  # noqa: BLE001
         print(f"[refresh] failed: {e}")
@@ -178,6 +179,12 @@ def refresh_robinhood_token() -> Optional[str]:
         exp = datetime.now(timezone.utc) + timedelta(seconds=int(tok["expires_in"]))
         _save_secret("ROBINHOOD_TOKEN_EXPIRES_AT", exp.isoformat())
     print("[refresh] Robinhood token refreshed")
+    # Refresh tokens rotate (single use): the vault holds its own copy, and a
+    # refresh here invalidates it. Push the new pair so there is one lineage.
+    try:
+        ensure_robinhood_credential(get_or_create_vault(), force=True)
+    except BaseException as e:  # noqa: BLE001 — SystemExit too; never break the caller
+        print(f"[refresh] vault sync failed: {e}")
     return access
 
 
@@ -313,6 +320,7 @@ def report_cost(session_id: str, model: str = "claude-haiku-4-5", label: str = "
 ROBINHOOD_MCP_URL = "https://agent.robinhood.com/mcp/trading"
 ROBINHOOD_TOKEN_ENDPOINT = "https://api.robinhood.com/oauth2/token/"
 ROBINHOOD_SCOPE = "internal"
+ROBINHOOD_REFRESH_TIMEOUT_S = 20
 
 
 def get_or_create_vault(
@@ -385,15 +393,7 @@ def ensure_robinhood_credential(vault_id: str, force: bool = False) -> None:
     }
     if expires_at:
         create_auth["expires_at"] = expires_at
-    if refresh:
-        create_auth["refresh"] = {
-            "client_id": client_id,
-            "refresh_token": refresh,
-            "token_endpoint": ROBINHOOD_TOKEN_ENDPOINT,
-            "token_endpoint_auth": {"type": "none"},
-            "resource": ROBINHOOD_MCP_URL,
-            "scope": ROBINHOOD_SCOPE,
-        }
+    # No "refresh" block on create: see the note on update_auth below.
 
     # update() payload: the API rejects mcp_server_url (immutable) and
     # refresh.client_id/token_endpoint/resource/token_endpoint_auth (also
@@ -403,8 +403,12 @@ def ensure_robinhood_credential(vault_id: str, force: bool = False) -> None:
     update_auth: dict = {"type": "mcp_oauth", "access_token": access}
     if expires_at:
         update_auth["expires_at"] = expires_at
-    if refresh:
-        update_auth["refresh"] = {"refresh_token": refresh, "scope": ROBINHOOD_SCOPE}
+    # The vault must NOT hold a refresh token. Robinhood refresh tokens rotate
+    # (single use), so a vault that refreshes on its own kills the host's copy
+    # and vice versa. The host is the only refresher (refresh_robinhood_token)
+    # and pushes each fresh access token here; refresh=None clears any
+    # refresh config left on an existing credential.
+    update_auth["refresh"] = None
 
     existing_id = state.get("robinhood_credential_id")
     if force and existing_id:
