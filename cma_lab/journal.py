@@ -78,6 +78,11 @@ class JournalEntry:
     closing_order_id: Optional[str] = None
     closing_order_state: Optional[str] = None
     closing_order_ref_id: Optional[str] = None
+    # Set by integrity.audit when a trade's prices are implausible (bad quote,
+    # mispriced limit). Excluded trades stay in the journal for inspection but
+    # are left out of summarize() so they can't teach the desk anything.
+    excluded: bool = False
+    exclusion_reason: str = ""
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -179,6 +184,18 @@ class TradeJournal:
                             broker_order_id=broker_order_id,
                             broker_order_state=broker_order_state)
 
+    def exclude(self, entry_id: str, reason: str) -> Optional[dict]:
+        """Flag a trade as untrustworthy data. Non-destructive and reversible
+        (set excluded back to False). An open SIM trade is also voided so the
+        sweep stops managing a position that never really existed."""
+        e = self.get(entry_id)
+        if e is None:
+            return None
+        changes = {"excluded": True, "exclusion_reason": reason}
+        if e["status"] == "open" and (e.get("mode") or "live") == "sim":
+            changes["status"] = "voided"
+        return self._update(entry_id, **changes)
+
     def open_sim(self, entry_id: str, *, fill_price: float,
                  filled_qty: float) -> Optional[dict]:
         """Sim lane: proposal -> open directly, no human approve/execute step."""
@@ -226,7 +243,8 @@ class TradeJournal:
         live outcomes are real-money evidence; sim gives volume but weaker signal.
         Sample counts are always broken out by lane so nothing sim-only gets
         reported as if it were live-confirmed edge."""
-        closed = [e for e in self._load() if e["status"] == "closed" and e.get("pnl") is not None]
+        closed = [e for e in self._load() if e["status"] == "closed"
+                  and e.get("pnl") is not None and not e.get("excluded")]
 
         def _weight(e) -> float:
             return 3.0 if (e.get("mode") or "live") == "live" else 1.0

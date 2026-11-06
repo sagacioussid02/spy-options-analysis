@@ -13,6 +13,7 @@ import re
 import uuid
 
 import events
+import integrity
 import order_state
 import sleeve
 from journal import JournalValidationError, TradeJournal
@@ -242,7 +243,16 @@ def _gate_and_afford(entry: dict) -> tuple[str | None, float]:
     if not decision.allowed:
         return "BLOCKED by risk gate — not executed. Proposal stays pending.", 0.0
 
-    px = entry.get("limit_price") or _live_price(entry["symbol"]) or entry.get("snapshot_price") or 0
+    quote = _live_price(entry["symbol"])
+    if entry.get("limit_price") and quote:
+        problem = integrity.price_problem(entry["limit_price"], quote)
+        if problem:
+            J._update(entry["id"], status="rejected",
+                      human_notes=(entry.get("human_notes", "") + f" [integrity] {problem}").strip()[:600])
+            events.log_event("mispriced_limit", id=entry["id"], symbol=entry["symbol"],
+                             limit=entry["limit_price"], quote=quote)
+            return f"BLOCKED by integrity check — {problem}.", 0.0
+    px = entry.get("limit_price") or quote or entry.get("snapshot_price") or 0
     notional = float(px) * float(entry["quantity"])
     try:
         if not ACCOUNT:
@@ -261,6 +271,18 @@ def _gate_and_afford(entry: dict) -> tuple[str | None, float]:
     return None, px
 
 
+def _sim_fill_price(entry: dict, px: float):
+    """Paper fill price, or None if the order would not have filled. A limit
+    buy fills at the quote when marketable (not at its own limit, which could
+    be anywhere), and a non-marketable limit does not fill at all."""
+    quote = _live_price(entry["symbol"])
+    if entry["entry_style"] == "limit" and entry.get("limit_price"):
+        if quote is None:
+            return float(entry["limit_price"])
+        return integrity.sim_limit_fill(entry["limit_price"], quote)
+    return quote or entry.get("limit_price") or entry.get("snapshot_price") or px or None
+
+
 def execute_sim(entry: dict) -> str:
     """Autonomous SIM lane: risk gate -> simulated fill -> journaled OPEN.
     No human approval step — this is what lets the desk run without a human
@@ -268,10 +290,11 @@ def execute_sim(entry: dict) -> str:
     reason, px = _gate_and_afford(entry)
     if reason:
         return reason
-    if entry["entry_style"] == "limit" and entry.get("limit_price"):
-        fill = entry["limit_price"]
-    else:
-        fill = _live_price(entry["symbol"]) or entry.get("limit_price") or entry.get("snapshot_price") or px
+    fill = _sim_fill_price(entry, px)
+    if fill is None:
+        J._update(entry["id"], status="rejected",
+                  human_notes=(entry.get("human_notes", "") + " [sim] limit not marketable — would not have filled").strip()[:600])
+        return "SIM: limit not marketable at the current quote — no fill, proposal closed."
     J.open_sim(entry["id"], fill_price=float(fill), filled_qty=float(entry["quantity"]))
     return (f"SIM fill: {entry['quantity']:g} {entry['symbol']} @ ${float(fill):.2f}. "
             f"Journaled as open (mode=sim).")
@@ -311,10 +334,9 @@ def execute_approved(entry: dict) -> str:
         fill = _extract_price(raw) or entry.get("limit_price") or entry.get("snapshot_price")
         mode = "LIVE"
     else:
-        if entry["entry_style"] == "limit" and entry.get("limit_price"):
-            fill = entry["limit_price"]
-        else:
-            fill = _live_price(entry["symbol"]) or entry.get("limit_price") or entry.get("snapshot_price")
+        fill = _sim_fill_price(entry, 0)
+        if fill is None:
+            return "SIMULATED: limit not marketable at the current quote — no fill."
         mode = "SIMULATED"
 
     if mode == "SIMULATED":

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Weekly reflection. Reads the trade journal, updates lessons.md, and (only with
+# Daily post-close reflection (--if-needed skips days with no new outcomes). Reads the trade journal, updates lessons.md, and (only with
 # enough closed trades) records bounded risk suggestions for you to review.
 # Disable: launchctl unload ~/Library/LaunchAgents/com.sidd.spy.reflection.plist
 set -euo pipefail
@@ -11,6 +11,6 @@ LOG="cma_lab/briefings/reflection-$(date +%Y-%m-%d).txt"
 
 {
   echo "===== reflection @ $(date '+%Y-%m-%d %H:%M:%S %Z') ====="
-  "$REPO/.venv/bin/python" cma_lab/reflect.py
+  "$REPO/.venv/bin/python" cma_lab/reflect.py --if-needed
   echo
 } >> "$LOG" 2>&1

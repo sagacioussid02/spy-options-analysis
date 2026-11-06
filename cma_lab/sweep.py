@@ -30,6 +30,7 @@ from typing import Optional
 import uuid
 
 import exit_review
+import integrity
 import order_state
 import sleeve
 from execution import ACCOUNT, _extract_price, _qty_str
@@ -240,6 +241,9 @@ def run(*, sim_only: bool = False) -> list[dict]:
     if topup:
         print(f"  [sweep] sleeve topup applied: +${topup:.2f}")
 
+    for f in integrity.audit(J):
+        print(f"  [sweep] [integrity] excluded {f['id']} {f['symbol']}: {f['reason']}")
+
     if not sim_only:
         reconcile()
 
@@ -254,6 +258,11 @@ def run(*, sim_only: bool = False) -> list[dict]:
         quote = _quote(entry["symbol"])
         if quote is None:
             print(f"  [sweep] {entry['id']}: no quote for {entry['symbol']}, skipping")
+            continue
+        lo, hi = integrity.EXIT_RATIO_BOUNDS
+        if entry.get("fill_price") and not (lo <= quote / float(entry["fill_price"]) <= hi):
+            print(f"  [sweep] {entry['id']} {entry['symbol']}: quote {quote} is implausible "
+                  f"vs fill {entry['fill_price']} — ignoring this quote, will retry next sweep")
             continue
         reason = _should_close(entry, quote, today)
         if not reason:
