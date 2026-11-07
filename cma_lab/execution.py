@@ -356,6 +356,12 @@ def _journal_live_buy(entry: dict, raw: str) -> str:
     anything pending is journaled as submitted and settled by sweep's
     reconcile pass."""
     ref = str(uuid.uuid5(uuid.NAMESPACE_OID, entry["id"]))
+    if str(raw).lstrip().startswith("API error"):
+        # mcp_call_tool returns broker errors as text instead of raising; this
+        # is a refusal, so nothing was bought and nothing needs reconciling.
+        J._update(entry["id"], status="rejected",
+                  human_notes=(entry.get("human_notes", "") + f" [broker] {str(raw)[:200]}").strip()[:600])
+        return f"broker refused the order ({str(raw)[:160]}) — nothing was bought."
     order = order_state.match_record(raw, ref_id=ref) or order_state.match_record(raw)
     if order is None:
         J._update(entry["id"], status="reconciliation_required", broker_order_ref_id=ref)
@@ -428,6 +434,11 @@ def execute_autonomous(entry: dict, *, allow_resize: bool = True) -> str:
     if float(entry["quantity"]) > LIVE_MAX_SHARES:
         return (f"Live ramp cap: live orders are limited to {LIVE_MAX_SHARES} share(s) — "
                 f"leaving queued for human /approve via advisor.py.")
+    if float(entry["quantity"]) != int(float(entry["quantity"])) and entry["entry_style"] == "limit":
+        # Robinhood rejects fractional LIMIT orders (400); fractional is market-only.
+        J._update(entry["id"], entry_style="market")
+        entry["entry_style"] = "market"
+        print("  [autonomous] fractional quantity: limit -> market (broker allows fractional market only)")
 
     # Portfolio-wide exposure cap — a per-order cap alone doesn't stop a
     # basket of tickers from stacking past the sleeve in aggregate. Valued

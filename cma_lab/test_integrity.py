@@ -1,7 +1,9 @@
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
+import events
 import integrity
 from journal import TradeJournal
 
@@ -18,6 +20,10 @@ def _closed(j, sym, fill, exit_, mode="sim"):
 
 class IntegrityTests(unittest.TestCase):
     def setUp(self):
+        # audit() logs events to the real store; keep tests out of it.
+        patcher = unittest.mock.patch.object(events, "log_event")
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.j = TradeJournal(Path(tempfile.mkstemp(suffix=".json")[1]))
 
     def test_price_problem(self):
