@@ -15,8 +15,11 @@ second timeout. This adapter wraps the same functions as ``mcp_server.py``
   finish in the background (the engine run can take 15 minutes);
 - never lists ``execute_confirmed_trade`` or ``run_paper_sweep``, and blocks
   every broker call except a fixed set of reads for the whole process (see
-  :func:`install_broker_guard`), so nothing reached through this adapter can
-  place, cancel or review an order;
+  :func:`install_broker_guard`);
+- only when ``SPY_DESK_SUTRA_TRADING`` is set, lists ``place_desk_order``,
+  which submits an analysed order through the desk's own checks plus Sutra
+  caps (see ``sutra_trading.py``). The guard lets order calls through only
+  while that tool runs. Register it in Sutra as ``confirm-first``;
 - never sets or changes ``SPY_LIVE``. ``/api/health`` reports whether live
   trading is armed, and that is all.
 
@@ -42,6 +45,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 import mcp_server
+import sutra_trading
 
 PROJECT_NAME = "spy-desk"
 DEFAULT_PORT = 8790
@@ -73,6 +77,9 @@ class BrokerWriteBlocked(RuntimeError):
 def install_broker_guard() -> None:
     """Allow only BROKER_READ_TOOLS through ``lab._mcp_call`` for this process.
 
+    The one exception is ``sutra_trading.ORDER_TOOLS`` while
+    ``place_desk_order`` holds its order window in the calling thread.
+
     Every Robinhood call in cma_lab goes through ``lab.mcp_call_tool``, which
     looks up ``_mcp_call`` on the ``lab`` module at call time, including its
     retry after a token refresh. Wrapping it here therefore covers callers that
@@ -85,7 +92,8 @@ def install_broker_guard() -> None:
         return
 
     async def guarded(name: str, arguments: dict) -> str:
-        if name not in BROKER_READ_TOOLS:
+        in_order = name in sutra_trading.ORDER_TOOLS and sutra_trading.order_window_open()
+        if name not in BROKER_READ_TOOLS and not in_order:
             raise BrokerWriteBlocked(f"broker tool {name!r} is not allowed through the Sutra adapter")
         return await current(name, arguments)
 
@@ -203,11 +211,22 @@ class _Desk:
         return call
 
 
-def _tools(runs: Runs) -> tuple[Tool, ...]:
+def _tools(runs: Runs, trading: bool = False) -> tuple[Tool, ...]:
     m = _Desk()
     limit = Arg("limit", "number")
     ticker = Arg("ticker", required=True)
-    return (
+    order_tools = (
+        Tool("place_desk_order",
+             "Submit the exact buy or sell from an analysed review_id (see analyze_trade_request) to "
+             "the Robinhood account. Places a real order when the desk's live trading is armed; "
+             "otherwise a buy is only recorded as a simulation proposal. Passes the desk's risk gate, "
+             "whitelist, kill switch, buying-power and no-shorting checks plus Sutra's per-order and "
+             "daily dollar caps. Confirm the ticker, side, quantity and price with the operator first.",
+             "confirm-first", "POST", sutra_trading.place_desk_order,
+             (Arg("review_id", required=True), Arg("acknowledge_doubts", "boolean"),
+              Arg("proceed_without_analysis", "boolean"))),
+    ) if trading else ()
+    return order_tools + (
         Tool("get_engine_signal", "Read the latest engine decision report. Does not refresh analysis or place orders.", "read-only", "GET", m.get_engine_signal),
         Tool("get_recent_debates", "Read recent committee debates, including Bull/Bear cases and the PM outcome.", "read-only", "GET", m.get_recent_debates, (limit,)),
         Tool("get_journal_summary", "Read the desk journal's performance summary. No writes or broker calls.", "read-only", "GET", m.get_journal_summary),
@@ -243,7 +262,8 @@ def manifest(tools: tuple[Tool, ...]) -> dict[str, Any]:
         "project": {
             "name": PROJECT_NAME,
             "description": "SPY options desk: engine signals, journal, broker reads and pre-trade "
-                           "analysis. Read and analyze only; no order can be placed through Sutra.",
+                           "analysis. Orders only through place_desk_order, when the operator "
+                           "has turned Sutra trading on.",
         },
         "tools": [
             {
@@ -265,6 +285,12 @@ def manifest(tools: tuple[Tool, ...]) -> dict[str, Any]:
 
 
 def _coerce(arg: Arg, raw: Any) -> Any:
+    if arg.type == "boolean":
+        if isinstance(raw, bool):
+            return raw
+        if isinstance(raw, str) and raw.lower() in ("true", "false"):
+            return raw.lower() == "true"
+        raise ToolError(f"argument {arg.name!r} must be true or false")
     if arg.type == "number":
         if isinstance(raw, bool) or not isinstance(raw, (int, float, str)):
             raise ToolError(f"argument {arg.name!r} must be a number")
@@ -344,12 +370,21 @@ def health() -> dict[str, Any]:
     except OSError:
         pass
 
+    try:
+        sutra_orders = sutra_trading.status()
+    except Exception as exc:  # noqa: BLE001
+        sutra_orders = {"enabled": None, "caps_set": None}
+        problems.append(f"Sutra trading settings unreadable ({type(exc).__name__})")
+    if sutra_orders.get("enabled") and not sutra_orders.get("caps_set"):
+        problems.append("Sutra trading is on but its dollar caps are not set")
+
     return {
         "status": "degraded" if problems else "ok",
         "problems": problems,
         "broker": broker,
         "engine": {"last_report_age_hours": report_age_hours},
         "live_trading_armed": live_armed,
+        "sutra_trading": sutra_orders,
         "checked_at": _now(),
     }
 
@@ -358,13 +393,14 @@ def health() -> dict[str, Any]:
 
 
 def build_app(token: str, *, port: int = DEFAULT_PORT, runs: Runs | None = None,
-              guard_broker: bool = True) -> FastAPI:
+              guard_broker: bool = True, trading: bool | None = None) -> FastAPI:
+    """``trading`` defaults to ``SPY_DESK_SUTRA_TRADING``, read once at start-up."""
     if not token:
         raise ValueError("SPY_DESK_TOKEN is required")
     if guard_broker:
         install_broker_guard()
     run_table = runs or Runs()
-    tools = _tools(run_table)
+    tools = _tools(run_table, sutra_trading.enabled() if trading is None else trading)
     assert not NEVER_LISTED & {t.name for t in tools}, "a write tool slipped into the manifest"
 
     app = FastAPI(title="spy desk sutra adapter", docs_url=None, redoc_url=None, openapi_url=None)
