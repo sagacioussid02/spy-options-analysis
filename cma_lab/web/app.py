@@ -7,14 +7,23 @@ button. Reuses advisor.py's brains (journal, HANDLERS, execute_approved); this i
 only presentation + HTTP.
 
 Run (from the cma_lab/ dir so sibling modules import cleanly):
-    cd cma_lab && ../.venv/bin/python -m uvicorn web.app:app --port 8787
+    cd cma_lab && ../.venv/bin/python -m uvicorn web.app:app --host 127.0.0.1 --port 8787
     # then open http://localhost:8787
+
+Auth (issue #5): the state-changing POST endpoints (/api/approve, /api/reject,
+/api/tweak, /api/chat) require a bearer token and reject cross-origin
+requests. The token is SPY_WEB_TOKEN (cma_lab/.env); if that is unset, a
+random per-run token is generated and printed at startup — the server never
+runs open. Read-only GETs stay unauthenticated; the bind is localhost-only.
 """
 from __future__ import annotations
 
+import hmac
+import secrets
 from pathlib import Path
+from urllib.parse import urlparse
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 
 import advisor  # noqa: E402  (its module-level setup: J, HANDLERS, execute_approved)
@@ -23,12 +32,53 @@ from lab import (
     ensure_robinhood_credential,
     get_or_create_environment,
     get_or_create_vault,
+    lab_env,
 )
 from risk_gate import load_risk_config
 
 app = FastAPI(title="SPY Advisor")
 STATIC = Path(__file__).parent / "static"
 STATE: dict = {}
+
+
+def _load_web_token() -> tuple[str, bool]:
+    """(token, generated?) — SPY_WEB_TOKEN via lab_env, else per-run random."""
+    configured = lab_env("SPY_WEB_TOKEN")
+    if configured:
+        return configured, False
+    return secrets.token_urlsafe(32), True
+
+
+WEB_TOKEN, _WEB_TOKEN_GENERATED = _load_web_token()
+if _WEB_TOKEN_GENERATED:
+    print(f"[web] SPY_WEB_TOKEN not set — per-run UI token: {WEB_TOKEN}")
+    print(f"[web] open http://127.0.0.1:8787/?token={WEB_TOKEN}")
+else:
+    print("[web] UI auth on: SPY_WEB_TOKEN loaded (cma_lab/.env).")
+
+
+def _same_origin(req: Request) -> bool:
+    """CSRF guard: a browser POST must originate from this UI's own origin.
+
+    Non-browser clients send no Origin/Referer — the bearer token is their
+    credential, so absence is allowed; a present-but-foreign one is not.
+    """
+    host = req.headers.get("host", "")
+    for header in ("origin", "referer"):
+        value = req.headers.get(header)
+        if value:
+            return urlparse(value).netloc == host
+    return True
+
+
+def require_ui_auth(req: Request) -> None:
+    """Gate for state-changing endpoints: bearer token + same-origin."""
+    auth = req.headers.get("authorization", "")
+    token = auth[len("Bearer "):] if auth.startswith("Bearer ") else ""
+    if not hmac.compare_digest(token, WEB_TOKEN):
+        raise HTTPException(status_code=401, detail="missing or invalid UI token")
+    if not _same_origin(req):
+        raise HTTPException(status_code=403, detail="cross-origin request rejected")
 
 
 def ensure_session() -> str:
@@ -86,7 +136,7 @@ def index():
     return FileResponse(STATIC / "index.html")
 
 
-@app.post("/api/chat")
+@app.post("/api/chat", dependencies=[Depends(require_ui_auth)])
 async def chat(req: Request):
     body = await req.json()
     return {"reply": web_turn(str(body.get("message", "")))}
@@ -97,7 +147,7 @@ def proposals():
     return advisor.J.pending_proposals()
 
 
-@app.post("/api/approve")
+@app.post("/api/approve", dependencies=[Depends(require_ui_auth)])
 async def approve(req: Request):
     body = await req.json()
     eid = body.get("id")
@@ -114,14 +164,14 @@ async def approve(req: Request):
     return {"result": advisor.execute_approved(advisor.J.get(e["id"]))}
 
 
-@app.post("/api/reject")
+@app.post("/api/reject", dependencies=[Depends(require_ui_auth)])
 async def reject(req: Request):
     body = await req.json()
     advisor.J.reject(body["id"], note=body.get("note", ""))
     return {"ok": True}
 
 
-@app.post("/api/tweak")
+@app.post("/api/tweak", dependencies=[Depends(require_ui_auth)])
 async def tweak(req: Request):
     body = await req.json()
     changes = {}
