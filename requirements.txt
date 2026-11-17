@@ -15,3 +15,8 @@ numpy==2.4.0
 scipy==1.16.3
 requests==2.32.5
 python-dotenv==1.2.1
+# Local HTTP surfaces: the approval web UI (cma_lab/web) and the Sutra adapter
+# (cma_lab/sutra_api.py). httpx is only needed for their tests.
+fastapi==0.163.1
+uvicorn==0.54.0
+httpx==0.28.1

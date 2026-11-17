@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r cma_lab/requirements.txt
+      - name: Unit tests (no broker, no network, no live trading)
+        working-directory: cma_lab
+        env:
+          SPY_SIM_ONLY: "1"
+          SPY_WEB_TOKEN: ci-only-web-token
+          SPY_DESK_TOKEN: ci-only-desk-token
+        run: |
+          python -m unittest -v \
+            test_integrity test_mcp_server test_operator_notification \
+            test_order_state test_run_step test_trade_analyst \
+            test_risk_gate test_web_app test_sutra_api

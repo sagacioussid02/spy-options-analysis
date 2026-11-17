@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.sidd.spy.sutra-api</string>
+
+    <!-- Sutra adapter on 127.0.0.1:8790. Long-running: launchd restarts it if it
+         exits. SPY_DESK_TOKEN comes from cma_lab/.env, never from this file,
+         and no EnvironmentVariables are set here (in particular not SPY_LIVE). -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/siddharthshankar/workspace/spy/cma_lab/run_sutra_api.sh</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <!-- Don't spin if it can't start (e.g. no SPY_DESK_TOKEN yet). -->
+    <key>ThrottleInterval</key>
+    <integer>60</integer>
+
+    <key>StandardOutPath</key>
+    <string>/Users/siddharthshankar/Library/Logs/spy-sutra-api.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/siddharthshankar/Library/Logs/spy-sutra-api.err.log</string>
+</dict>
+</plist>
