@@ -103,3 +103,65 @@ running the server; optionally set `SPY_NTFY_SERVER` (HTTPS only) and
 Committee notifications are intentionally two concise lines; full analysis is
 retrievable by `review_id`. Never put account numbers or credentials in a topic
 name or notification content.
+
+## Sutra HTTP Adapter
+
+`cma_lab/sutra_api.py` serves the same desk functions over local HTTP so the
+Sutra gateway can discover them from an Agent Manifest. The stdio server above
+is unchanged.
+
+- **Address:** `http://127.0.0.1:8790` (set `SPY_DESK_SUTRA_PORT` to change it).
+  It binds to loopback only and returns 403 for any `Host` header that is not
+  `127.0.0.1`, `localhost` or `[::1]` on that port.
+- **Auth:** every tool call needs the header `X-Spy-Desk-Token` matching
+  `SPY_DESK_TOKEN` (read with `lab_env`, so `cma_lab/.env` works). The adapter
+  refuses to start without it. The manifest
+  (`/.well-known/sutra-agent.json`) and `/api/health` need no token.
+- **Tools:** the read-only tools listed above, plus `get_engine_run(run_id)`,
+  and two confirm-first tools that return at once and finish in the background:
+  - `run_engine(ticker)` returns a `run_id`; poll `get_engine_run`. Runs live
+    in memory, so a restart forgets them.
+  - `analyze_trade_request(...)` returns a `review_id`; poll
+    `get_trade_analysis_details`.
+- **Never listed:** `execute_confirmed_trade`, `run_paper_sweep`,
+  `create_trade_proposal`, `reject_trade_proposal`, `wait_for_trade_analysis`.
+- **Broker guard:** at start-up the adapter wraps `lab._mcp_call` so that, in
+  this process, only `get_portfolio`, `get_equity_positions`,
+  `get_equity_orders` and `get_equity_quotes` reach Robinhood. Any other broker
+  tool, including `place_equity_order` and `review_equity_order`, raises before
+  a request is sent, whichever module calls it.
+- **Live trading:** the adapter never sets or changes `SPY_LIVE`.
+  `/api/health` reports `live_trading_armed` (as `execution.py` computes it)
+  and nothing more.
+
+### Health
+
+`GET /api/health` returns `status` `ok` or `degraded`, with `problems`, broker
+token presence, expiry and whether it can refresh, the age of the last engine
+report in hours, and `live_trading_armed`. It holds no token values. The
+status is `degraded` when the broker token is missing, or expired or within a
+day of expiry with no refresh token, or when settings can't be read.
+
+### Run It
+
+```bash
+cd cma_lab && ../.venv/bin/python sutra_api.py
+```
+
+As a service, copy `cma_lab/launchd/com.sidd.spy.sutra-api.plist` to
+`~/Library/LaunchAgents/` and load it with `launchctl`. Logs go to
+`~/Library/Logs/spy-sutra-api.{out,err}.log`.
+
+### Register With Sutra
+
+Add a source to Sutra's `gateway/discovery-sources.yaml`, put the same token
+in Sutra's environment (`~/.config/sutra/sutra.env`), then run `sutra-discover`
+to review and tier the tools:
+
+```yaml
+  - name: spy-desk
+    manifest_url: http://127.0.0.1:8790/.well-known/sutra-agent.json
+    base_url: http://127.0.0.1:8790
+    auth_header: X-Spy-Desk-Token
+    auth_env: SPY_DESK_TOKEN
+```
