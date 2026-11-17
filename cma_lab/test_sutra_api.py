@@ -55,7 +55,7 @@ class SutraApiTestCase(unittest.TestCase):
 
         lab._mcp_call = recorder
         self.runs = sutra_api.Runs()
-        self.app = sutra_api.build_app(TOKEN, port=PORT, runs=self.runs)
+        self.app = sutra_api.build_app(TOKEN, port=PORT, runs=self.runs, trading=False)
         self.client = TestClient(self.app, base_url=LOCAL)
 
 

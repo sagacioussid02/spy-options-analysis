@@ -20,3 +20,5 @@ cma_lab/radar.json
 .DS_Store
 *.pyc
 # spy_decision_engine/data/trades.json is optional to ignore - contains trade history
+cma_lab/sutra_orders.json
+cma_lab/sutra_orders.tmp

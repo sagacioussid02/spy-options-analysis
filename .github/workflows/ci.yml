@@ -32,4 +32,4 @@ jobs:
           python -m unittest -v \
             test_integrity test_mcp_server test_operator_notification \
             test_order_state test_run_step test_trade_analyst \
-            test_risk_gate test_web_app test_sutra_api
+            test_risk_gate test_web_app test_sutra_api test_sutra_trading

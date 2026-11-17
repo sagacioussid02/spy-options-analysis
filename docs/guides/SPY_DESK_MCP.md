@@ -129,16 +129,55 @@ is unchanged.
   this process, only `get_portfolio`, `get_equity_positions`,
   `get_equity_orders` and `get_equity_quotes` reach Robinhood. Any other broker
   tool, including `place_equity_order` and `review_equity_order`, raises before
-  a request is sent, whichever module calls it.
+  a request is sent, whichever module calls it. The one exception is
+  `place_desk_order` (below), which opens an order window for its own thread
+  while it runs.
 - **Live trading:** the adapter never sets or changes `SPY_LIVE`.
   `/api/health` reports `live_trading_armed` (as `execution.py` computes it)
   and nothing more.
+
+### Buying And Selling Through Sutra
+
+Off unless `SPY_DESK_SUTRA_TRADING=1` is set when the adapter starts. Then the
+manifest lists one more tool, `place_desk_order(review_id,
+acknowledge_doubts?, proceed_without_analysis?)`. The flow is:
+
+1. `analyze_trade_request(ticker, side, quantity, ...)` returns a `review_id`.
+2. `get_trade_analysis_details(review_id)` shows the analysis when it's done.
+3. `place_desk_order(review_id)` submits exactly that order through the desk's
+   `execute_confirmed_trade`, with `confirm=true`.
+
+Every desk check still applies: the risk gate, ticker whitelist, kill switch,
+quantity and notional limits, the live ramp cap, buying power, no shorting,
+and one submission per review. When live trading is not armed, a buy is only
+recorded as a simulation proposal and a sell is refused. The adapter never sets
+or changes `SPY_LIVE` or `SPY_SIM_ONLY`.
+
+Sutra orders also have their own caps, read on every call:
+
+| Variable | Meaning |
+| --- | --- |
+| `SPY_DESK_SUTRA_MAX_ORDER_USD` | Largest single order, in dollars (quantity × limit price or live quote). Required. |
+| `SPY_DESK_SUTRA_MAX_DAILY_USD` | Total of Sutra orders per New York trading day. Required. |
+| `SPY_DESK_SUTRA_MAX_DAILY_ORDERS` | Number of Sutra orders per day. Default 3. |
+
+Without both dollar caps no order goes through, and `/api/health` reports
+`degraded`. Each order is written to `cma_lab/sutra_orders.json` (gitignored)
+before the broker is called. Orders that weren't submitted are released from
+the caps; an order whose outcome is unclear keeps counting.
+
+In `sutra-discover`, approve `place_desk_order` as **confirm-first**, never
+read-only, so each call waits for a `gateway_confirm`. Note that Sutra accepts
+that confirmation from any client holding your Sutra token, so an agent that
+can call tools can also confirm them. The dollar caps are the limit that
+doesn't depend on the client asking you first.
 
 ### Health
 
 `GET /api/health` returns `status` `ok` or `degraded`, with `problems`, broker
 token presence, expiry and whether it can refresh, the age of the last engine
-report in hours, and `live_trading_armed`. It holds no token values. The
+report in hours, `live_trading_armed`, and `sutra_trading` (whether Sutra
+orders are on and their dollar caps set). It holds no token values or amounts. The
 status is `degraded` when the broker token is missing, or expired or within a
 day of expiry with no refresh token, or when settings can't be read.
 
