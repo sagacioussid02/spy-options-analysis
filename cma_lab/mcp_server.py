@@ -280,6 +280,14 @@ def create_trade_proposal(
     order = {"symbol": symbol, "side": side, "type": entry_style, "quantity": quantity}
     if limit_price is not None:
         order["price"] = limit_price
+    else:
+        # Market order: the gate's notional cap needs a reference price
+        # (issue #4). Attach a live quote; if none can be obtained the gate
+        # itself fails closed and denies the proposal.
+        from execution import _live_price
+        ref_price = _live_price(symbol)
+        if ref_price:
+            order["price"] = ref_price
     gate = evaluate("place_equity_order", order, cfg)
     if not gate.allowed:
         return {"error": "Proposal rejected by the local risk gate.", "risk_gate": str(gate)}
@@ -440,6 +448,13 @@ def execute_confirmed_trade(
                       "quantity": quantity}
         if limit_price is not None:
             gate_order["price"] = limit_price
+        else:
+            # Market order: attach a live reference quote so the gate's
+            # notional cap applies (issue #4); if no quote can be obtained
+            # the gate fails closed and denies the order.
+            ref_price = _live_price(symbol)
+            if ref_price:
+                gate_order["price"] = ref_price
         gate = evaluate("place_equity_order", gate_order, cfg)
         if not gate.allowed:
             return {"error": "Current risk settings block this request.",

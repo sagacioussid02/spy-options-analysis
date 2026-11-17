@@ -44,6 +44,7 @@ class TradeAnalystTests(unittest.TestCase):
         from risk_gate import RiskConfig
 
         with patch("risk_gate.load_risk_config", return_value=RiskConfig(symbol_whitelist=("AAPL",))), \
+                patch("execution._live_price", return_value=100.0), \
                 patch("trade_analyst._all_reviews", return_value={}), \
                 patch("trade_analyst._save_review"), \
                 patch("trade_analyst._executor.submit", return_value=SlowFuture()):
@@ -69,6 +70,7 @@ class TradeAnalystTests(unittest.TestCase):
                   "created_at": datetime.now(timezone.utc).isoformat(),
                   "judgment": {"label": "confident"}}
         with patch("risk_gate.load_risk_config", return_value=RiskConfig(symbol_whitelist=("AAPL",))), \
+                patch("execution._live_price", return_value=100.0), \
                 patch("trade_analyst._all_reviews", return_value={"rev_cached": cached}), \
                 patch("trade_analyst._executor.submit") as submit:
             result = start_trade_review("AAPL", "buy", 0.01)
@@ -107,6 +109,7 @@ class TradeAnalystTests(unittest.TestCase):
         with patch("trade_analyst.get_trade_review", return_value=running), \
                 patch("execution.ACCOUNT", "test-account"), \
                 patch("execution.LIVE_EXECUTION", False), \
+                patch("execution._live_price", return_value=100.0), \
                 patch("risk_gate.load_risk_config") as load_cfg, \
                 patch("mcp_server._review_exit_plan", return_value={"target": 110, "stop": 90, "time_stop": "2026-11-10"}), \
                 patch("execution.J.propose") as propose, \

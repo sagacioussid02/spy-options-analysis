@@ -242,6 +242,14 @@ def start_trade_review(
         order = {"symbol": ticker, "side": side, "type": entry_style, "quantity": quantity}
         if limit_price is not None:
             order["price"] = limit_price
+        else:
+            # Market order: attach a live reference quote so the gate's
+            # notional cap applies (issue #4); if no quote can be obtained
+            # the gate fails closed and denies the request.
+            from execution import _live_price
+            ref_price = _live_price(ticker)
+            if ref_price:
+                order["price"] = ref_price
         gate = evaluate("place_equity_order", order, cfg)
         if not gate.allowed:
             return {"error": "Request fails the active risk gate.", "risk_gate": str(gate)}
