@@ -236,14 +236,22 @@ def _gate_and_afford(entry: dict) -> tuple[str | None, float]:
     sim or live alike, since buying power is broker truth."""
     gate_order = {"symbol": entry["symbol"], "side": entry["side"],
                   "type": entry["entry_style"], "quantity": entry["quantity"]}
-    if entry.get("limit_price"):
-        gate_order["price"] = entry["limit_price"]
+    # The gate's notional cap needs a price, and a market order carries none
+    # (issue #4): price it off a live quote so the cap applies to market
+    # orders too. Fail closed — no limit price AND no quote means the cap
+    # cannot be verified, so the order does not execute.
+    quote = _live_price(entry["symbol"])
+    ref_price = entry.get("limit_price") or quote
+    if not ref_price:
+        return ("BLOCKED by risk gate — no limit price and no live quote "
+                "available, so the per-order notional cap cannot be verified. "
+                "Proposal stays pending.", 0.0)
+    gate_order["price"] = ref_price
     decision = evaluate("place_equity_order", gate_order, load_risk_config())
     print(f"  [gate] {decision}")
     if not decision.allowed:
         return "BLOCKED by risk gate — not executed. Proposal stays pending.", 0.0
 
-    quote = _live_price(entry["symbol"])
     if entry.get("limit_price") and quote:
         problem = integrity.price_problem(entry["limit_price"], quote)
         if problem:

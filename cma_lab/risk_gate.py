@@ -41,7 +41,7 @@ class RiskConfig:
     symbol_whitelist: tuple = tuple(TICKER_BASKET)  # only these underlyings may be traded
     allowed_sides: tuple = ("buy",)        # long-only (Robinhood agentic = long only anyway)
     max_quantity: float = 5                # max contracts (options) or shares (equity) per order
-    max_notional_per_order: float = 1500.0 # $ cap when price is known
+    max_notional_per_order: float = 1500.0 # $ cap per order; a usable price is required (fail closed without one)
     allow_simulations: bool = True         # review_* (dry-run) calls allowed
 
 
@@ -122,14 +122,25 @@ def evaluate(tool_name: str, tool_input: dict, cfg: RiskConfig) -> RiskDecision:
     elif qty <= 0:
         reasons.append(f"quantity {qty:g} must be positive")
 
-    # Notional check only when price is known. Options carry a 100x multiplier.
-    if price is not None and qty is not None and qty > 0:
-        multiplier = 100 if tool_name == "place_option_order" else 1
-        notional = price * qty * multiplier
-        if notional > cfg.max_notional_per_order:
+    # Notional check. Options carry a 100x multiplier. A place order with a
+    # quantity but NO usable price used to skip this check entirely — and a
+    # market order carries no limit price, so the cap was bypassable through
+    # any market order (issue #4). Call sites now attach a reference price
+    # (the limit price, else a live quote); if none could be obtained, fail
+    # closed: an order whose notional cannot be verified does not pass.
+    if qty is not None and qty > 0:
+        if price is None or price <= 0:
             reasons.append(
-                f"notional ${notional:,.0f} exceeds cap ${cfg.max_notional_per_order:,.0f}"
+                "no usable price — per-order notional cap cannot be verified; "
+                "denied (fail closed)"
             )
+        else:
+            multiplier = 100 if tool_name == "place_option_order" else 1
+            notional = price * qty * multiplier
+            if notional > cfg.max_notional_per_order:
+                reasons.append(
+                    f"notional ${notional:,.0f} exceeds cap ${cfg.max_notional_per_order:,.0f}"
+                )
 
     if reasons:
         return RiskDecision(False, reasons)
